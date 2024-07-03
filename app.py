@@ -9,6 +9,7 @@ import socket
 from ping3 import ping
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+import time  # Added for delay
 
 app = Flask(__name__)
 
@@ -37,6 +38,10 @@ def capture_screenshot(url):
     options.add_argument('headless')
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(url)
+    
+    # Add a delay to ensure page fully loads before taking screenshot
+    time.sleep(10)
+    
     screenshot_path = f'static/screenshots/{url.replace("https://", "").replace("http://", "").replace("/", "_")}.png'
     driver.save_screenshot(screenshot_path)
     driver.quit()
