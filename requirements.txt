@@ -1,0 +1,7 @@
+Flask
+requests
+validators
+selenium
+webdriver-manager
+pyopenssl
+ping3

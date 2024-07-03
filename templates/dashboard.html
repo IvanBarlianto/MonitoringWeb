@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Monitoring</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .result img { max-width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Website Monitoring</h1>
+        <form id="monitorForm">
+            <label for="url">Website URL:</label>
+            <input type="text" id="url" name="url" required>
+            <button type="submit">Check</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('monitorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const response = await fetch('/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            if (response.ok) {
+                resultDiv.innerHTML = `
+                    <p><strong>SSL Expiry:</strong> ${data.ssl_expiry}</p>
+                    <p><strong>Ping:</strong> ${data.ping}</p>
+                    <p><strong>Screenshot:</strong></p>
+                    <img src="${data.screenshot}" alt="Screenshot of ${url}">
+                `;
+            } else {
+                resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
