@@ -10,16 +10,17 @@ from ping3 import ping
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 import time  # Added for delay
+from datetime import datetime  # Added for date formatting
 
 app = Flask(__name__)
 
-def ping_website(url):
+def ping_and_status_website(url):
     domain = url.split('//')[-1].split('/')[0]
     response_time = ping(domain)
     if response_time is not None:
-        return f"{response_time} ms"
+        return f"{response_time} ms", "ACTIVE"
     else:
-        return "Request timed out"
+        return "Request timed out", "NON ACTIVE"
 
 def check_ssl(url):
     try:
@@ -29,7 +30,9 @@ def check_ssl(url):
         conn.connect((domain, 443))
         conn.do_handshake()
         cert = conn.get_peer_certificate()
-        return cert.get_notAfter().decode('utf-8')
+        expiry_date_str = cert.get_notAfter().decode('utf-8')
+        expiry_date = datetime.strptime(expiry_date_str, '%Y%m%d%H%M%SZ')
+        return expiry_date.strftime('%d-%m-%Y')
     except Exception as e:
         return str(e)
 
@@ -80,12 +83,13 @@ def check():
         # Proceed with further processing
         ssl_expiry = check_ssl(url)
         screenshot = capture_screenshot(url)
-        ping_result = ping_website(url)
+        ping_public, status = ping_and_status_website(url)
 
         return jsonify({
             'ssl_expiry': ssl_expiry,
             'screenshot': screenshot,
-            'ping': ping_result
+            'ping_public': ping_public,
+            'status': status
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

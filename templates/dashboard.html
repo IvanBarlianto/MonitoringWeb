@@ -34,9 +34,11 @@
             const resultDiv = document.getElementById('result');
             if (response.ok) {
                 resultDiv.innerHTML = `
+                    <p><strong>URL:</strong> ${url}</p>
                     <p><strong>SSL Expiry:</strong> ${data.ssl_expiry}</p>
-                    <p><strong>Ping:</strong> ${data.ping}</p>
-                    <p><strong>Screenshot:</strong></p>
+                    <p><strong>PING PUBLIC:</strong> ${data.ping_public}</p>
+                    <p><strong>STATUS:</strong> ${data.status}</p>
+                    <p><strong>CAPTURE:</strong></p>
                     <img src="${data.screenshot}" alt="Screenshot of ${url}">
                 `;
             } else {
