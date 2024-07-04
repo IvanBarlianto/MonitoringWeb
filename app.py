@@ -69,7 +69,16 @@ def make_http_request(url):
 
 @app.route('/')
 def index():
-    return render_template('dashboard.html')
+    return render_template('home.html')
+
+@app.route('/dashboard')
+def dashboard():
+    # Data simulasi
+    web_active = 5
+    web_non_active = 3
+    jumlah_web = web_active + web_non_active
+
+    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, jumlah_web=jumlah_web)
 
 @app.route('/check', methods=['POST'])
 def check():

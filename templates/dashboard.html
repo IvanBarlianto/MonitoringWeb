@@ -4,21 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Website Monitoring</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .result img { max-width: 100%; }
-    </style>
+    <link rel="stylesheet" href="\static\style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Website Monitoring</h1>
-        <form id="monitorForm">
-            <label for="url">Website URL:</label>
-            <input type="text" id="url" name="url" required>
-            <button type="submit">Check</button>
-        </form>
-        <div class="result" id="result"></div>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="home">Dashboard</a></li>
+                <li><a href="dashboard">Data Web</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <div class="navbar-left">
+                    <h1>Website Monitoring</h1>
+                </div>
+                <div class="navbar-right">
+                    <div class="profile">
+                        <span>Profile</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="container-inner">
+                    <h1>Website Monitoring</h1>
+                    <form id="monitorForm">
+                        <label for="url">Website URL:</label>
+                        <input type="text" id="url" name="url" required>
+                        <button type="submit">Check</button>
+                    </form>
+                    <div class="result" id="result"></div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
