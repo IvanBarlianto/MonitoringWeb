@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Website Monitoring</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <h2>Menu</h2>
             <ul>
-                <li><a href="dashboard">Dashboard</a></li>
-                <li><a href="data">Data Web</a></li>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/data">Data Web</a></li> <!-- Ensure correct route -->
             </ul>
         </aside>
 
@@ -45,15 +47,26 @@
                 <table id="resultsTable">
                     <thead>
                         <tr>
-                            <th>No.</th>
+                            <th>ID</th>
                             <th>URL</th>
                             <th>SSL Expiry</th>
-                            <th>PING PUBLIC</th>
-                            <th>STATUS</th>
-                            <th>CAPTURE</th>
+                            <th>Ping Public</th>
+                            <th>Status</th>
+                            <th>Screenshot</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.id }}</td>
+                            <td>{{ result.url }}</td>
+                            <td>{{ result.ssl_expiry }}</td>
+                            <td>{{ result.ping_public }}</td>
+                            <td>{{ result.status }}</td>
+                            <td><img src="data:image/png;base64,{{ result.screenshot }}"
+                                    alt="Screenshot of {{ result.url }}" width="200"></td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -91,4 +104,5 @@
         });
     </script>
 </body>
+
 </html>
