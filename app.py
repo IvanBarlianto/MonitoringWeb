@@ -73,6 +73,10 @@ def make_http_request(url):
     except requests.exceptions.RequestException as e:
         raise Exception(f'Error making HTTP request: {str(e)}')
 
+@app.route('/')
+def index():
+    return render_template('login.html')
+
 # Route for index page
 @app.route('/data')
 def data():
@@ -118,9 +122,9 @@ def dashboard():
     results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
     web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
     web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
-    jumlah_web = web_active + web_non_active
+    total_web = web_active + web_non_active
 
-    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, jumlah_web=jumlah_web, results=results)
+    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
 
 # Create tables if they do not exist
 with app.app_context():
