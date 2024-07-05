@@ -75,7 +75,7 @@ def make_http_request(url):
 
 # Route for index page
 @app.route('/data')
-def index():
+def data():
     return render_template('data.html')
 
 # Route for checking website

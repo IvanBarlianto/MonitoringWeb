@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="\static\style.css">
+    <link rel="stylesheet" href="/static/style.css"> <!-- Ensure correct path to CSS -->
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <h2>Menu</h2>
+                <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="dashboard">Dashboard</a></li>
                 <li><a href="data">Data Web</a></li>
             </ul>
         </aside>
@@ -33,21 +33,21 @@
 
             <!-- Content -->
             <div class="content">
-                <div class="card">
-                    <h3>Web Active</h3>
+                <div class="card web-active">
+                    <h3>Active Website</h3>
                     <p id="web-active">{{ web_active }}</p>
                 </div>
-                <div class="card">
-                    <h3>Web Non-Active</h3>
+                <div class="card web-non-active">
+                    <h3>Non-Active Website</h3>
                     <p id="web-non-active">{{ web_non_active }}</p>
                 </div>
-                <div class="card">
-                    <h3>Jumlah Web</h3>
-                    <p id="jumlah-web">{{ jumlah_web }}</p>
+                <div class="card jumlah-web">
+                    <h3>Total Website</h3>
+                    <p id="Total-web">{{ total_web }}</p>
                 </div>
             </div>
         </main>
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="/static/script.js"></script> <!-- Ensure correct path to JavaScript -->
 </body>
 </html>
