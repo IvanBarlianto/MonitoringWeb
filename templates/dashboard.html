@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="\static\style.css">
+    <title>Website Monitoring</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <h2>Menu</h2>
-            <ul>
+                <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
+            <ul>   
                 <li><a href="dashboard">Dashboard</a></li>
                 <li><a href="data">Data Web</a></li>
             </ul>
@@ -22,7 +22,7 @@
             <!-- Navbar -->
             <nav class="navbar">
                 <div class="navbar-left">
-                    <h1>Dashboard</h1>
+                    <h1>Website Monitoring</h1>
                 </div>
                 <div class="navbar-right">
                     <div class="profile">
@@ -33,21 +33,62 @@
 
             <!-- Content -->
             <div class="content">
-                <div class="card">
-                    <h3>Web Active</h3>
-                    <p id="web-active">{{ web_active }}</p>
+                <div class="container-inner">
+                    <form id="monitorForm">
+                        <label for="url">Website URL:</label>
+                        <input type="text" id="url" name="url" required>
+                        <button type="submit">Check</button>
+                    </form>
                 </div>
-                <div class="card">
-                    <h3>Web Non-Active</h3>
-                    <p id="web-non-active">{{ web_non_active }}</p>
-                </div>
-                <div class="card">
-                    <h3>Jumlah Web</h3>
-                    <p id="jumlah-web">{{ jumlah_web }}</p>
-                </div>
+            </div>
+            <div class="result" id="result">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>URL</th>
+                            <th>SSL Expiry</th>
+                            <th>PING PUBLIC</th>
+                            <th>STATUS</th>
+                            <th>CAPTURE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <script>
+        document.getElementById('monitorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const response = await fetch('/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+            const resultTable = document.getElementById('resultsTable').querySelector('tbody');
+            if (response.ok) {
+                const newRow = resultTable.insertRow();
+                newRow.innerHTML = `
+                    <tr>
+                        <td>${resultTable.rows.length}</td>
+                        <td>${url}</td>
+                        <td>${data.ssl_expiry}</td>
+                        <td>${data.ping_public}</td>
+                        <td>${data.status}</td>
+                        <td><img src="${data.screenshot}" alt="Screenshot of ${url}"></td>
+                    </tr>
+                `;
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                document.getElementById('result').appendChild(errorDiv);
+            }
+        });
+    </script>
 </body>
 </html>

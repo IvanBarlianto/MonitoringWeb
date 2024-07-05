@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- Ensure correct path to CSS -->
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
+            <ul class="menu">
+                <li><a href="home.html">Dashboard</a></li>
+                <li><a href="dashboard">Data Web</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <div class="navbar-left">
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="navbar-right">
+                    <div class="profile">
+                        <span>Profile</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="card web-active">
+                    <h3>Active Website</h3>
+                    <p id="web-active">{{ web_active }}</p>
+                </div>
+                <div class="card web-non-active">
+                    <h3>Non-Active Website</h3>
+                    <p id="web-non-active">{{ web_non_active }}</p>
+                </div>
+                <div class="card jumlah-web">
+                    <h3>Total Website</h3>
+                    <p id="Total-web">{{ total_web }}</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/static/script.js"></script> <!-- Ensure correct path to JavaScript -->
+</body>
+</html>
