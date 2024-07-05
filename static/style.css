@@ -56,9 +56,10 @@ body {
 
 .content {
     display: flex;
-    justify-content: space-around;
-    padding: 20px;
-    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    flex-direction: column;
 }
 
 .card {
@@ -67,13 +68,27 @@ body {
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: 30%;
-    margin: 10px;
+    width: 300px;
+    margin: 20px 0;
     text-align: center;
+    color: #ffffff;
+    font-weight: bold;
 }
 
 .card h3 {
     margin-top: 0;
+}
+
+.web-active {
+    background-color: #179332;
+}
+
+.web-non-active {
+    background-color: #C83939;
+}
+
+.jumlah-web {
+    background-color: #103A5E;
 }
 
 .profile {
@@ -85,27 +100,38 @@ body {
     margin: 0 auto;
     padding: 20px;
 }
+
 .result img {
     max-width: 50%;
 }
+
 .result {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
+
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
+
 table, th, td {
     border: 1px solid #bdc3c7;
 }
+
 th, td {
     padding: 10px;
     text-align: left;
 }
+
 th {
     background-color: #2980b9;
     color: #ecf0f1;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 20px auto; /* Center the logo and add space below it */
 }
