@@ -67,8 +67,12 @@ def make_http_request(url):
     except requests.exceptions.RequestException as e:
         raise Exception(f'Error making HTTP request: {str(e)}')
 
-@app.route('/data')
+@app.route('/')
 def index():
+    return render_template('login.html')
+
+@app.route('/data')
+def data():
     return render_template('data.html')
 
 @app.route('/dashboard')
