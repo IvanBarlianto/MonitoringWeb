@@ -5,3 +5,7 @@ selenium
 webdriver-manager
 pyopenssl
 ping3
+requests
+sql
+flask_sqlalchemy
+mysql-connector-python
