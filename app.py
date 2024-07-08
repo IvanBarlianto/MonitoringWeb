@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/monitoring_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
 db = SQLAlchemy(app)
 
 # Define the MonitoringResult model
@@ -33,10 +34,16 @@ class MonitoringResult(db.Model):
     screenshot = db.Column(db.LargeBinary, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Define the User model for authentication
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+
 @app.template_filter('b64encode')
 def b64encode_filter(data):
     return base64.b64encode(data).decode('utf-8')
-    
+
 # Function to check SSL expiry date
 def check_ssl(url):
     try:
@@ -97,8 +104,22 @@ def ping_and_status_website(url):
         logging.error(f"Error pinging website: {e}")
         return "Error", "NON ACTIVE"
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Query the database for the user
+        user = User.query.filter_by(email=email, password=password).first()
+
+        if user:
+            # If user exists, store user data in session
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))  # Redirect to dashboard page after successful login
+        else:
+            return render_template('login.html', error='Invalid credentials')  # Show error message for invalid credentials
+
     return render_template('login.html')
 
 # Route for index page
@@ -121,15 +142,26 @@ def check():
         screenshot = capture_screenshot(url)
         ping_public, status = ping_and_status_website(url)
 
-        # Save monitoring result to database
-        result = MonitoringResult(
-            url=url,
-            ssl_expiry=ssl_expiry,
-            ping_public=ping_public,
-            status=status,
-            screenshot=screenshot  # Save raw screenshot data as BLOB
-        )
-        db.session.add(result)
+        # Check if the URL already exists in the database
+        existing_result = MonitoringResult.query.filter_by(url=url).first()
+
+        if existing_result:
+            # Update existing record
+            existing_result.ssl_expiry = ssl_expiry
+            existing_result.ping_public = ping_public
+            existing_result.status = status
+            existing_result.screenshot = screenshot
+        else:
+            # Save monitoring result to database
+            result = MonitoringResult(
+                url=url,
+                ssl_expiry=ssl_expiry,
+                ping_public=ping_public,
+                status=status,
+                screenshot=screenshot  # Save raw screenshot data as BLOB
+            )
+            db.session.add(result)
+
         db.session.commit()
 
         return jsonify({
@@ -140,7 +172,6 @@ def check():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 # Route for dashboard
 @app.route('/dashboard')
