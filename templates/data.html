@@ -12,10 +12,10 @@
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-                <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
+            <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
             <ul>
                 <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/data">Data Web</a></li> <!-- Ensure correct route -->
+                <li><a href="/data">Data Web</a></li>
             </ul>
         </aside>
 
@@ -63,8 +63,7 @@
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
                             <td>{{ result.status }}</td>
-                            <td><img src="data:image/png;base64,{{ result.screenshot }}"
-                                    alt="Screenshot of {{ result.url }}" width="200"></td>
+                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}" alt="Screenshot of {{ result.url }}" width="200"></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -77,28 +76,32 @@
         document.getElementById('monitorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const url = document.getElementById('url').value;
-            const response = await fetch('/check', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await response.json();
-            const resultTable = document.getElementById('resultsTable').querySelector('tbody');
-            if (response.ok) {
-                const newRow = resultTable.insertRow();
+            try {
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred');
+                }
+
+                const resultTable = document.getElementById('resultsTable').querySelector('tbody');
+                const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <tr>
-                        <td>${resultTable.rows.length}</td>
-                        <td>${url}</td>
-                        <td>${data.ssl_expiry}</td>
-                        <td>${data.ping_public}</td>
-                        <td>${data.status}</td>
-                        <td><img src="${data.screenshot}" alt="Screenshot of ${url}"></td>
-                    </tr>
+                    <td>${resultTable.rows.length + 1}</td>
+                    <td>${url}</td>
+                    <td>${data.ssl_expiry}</td>
+                    <td>${data.ping_public}</td>
+                    <td>${data.status}</td>
+                    <td><img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200"></td>
                 `;
-            } else {
+                resultTable.appendChild(newRow);
+            } catch (error) {
                 const errorDiv = document.createElement('div');
-                errorDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
                 document.getElementById('result').appendChild(errorDiv);
             }
         });
