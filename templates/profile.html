@@ -22,12 +22,11 @@
             font-family: 'Poppins', sans-serif;
         }
         body {
-            font-family: 'Poppins', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             height: 100vh;
-            background-color: #f4f4f9;
         }
 
         .container {
@@ -45,6 +44,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
         }
 
         .sidebar h2 {
@@ -55,6 +55,7 @@
             list-style: none;
             padding: 0;
             width: 100%;
+            margin-top: 0; /* Menghapus margin atas untuk list */
         }
 
         .sidebar ul li a {
@@ -63,6 +64,7 @@
             font-size: 12px;
             display: block;
             padding: 10px;
+            border-radius: 5px;
             text-align: center;
         }
 
@@ -74,15 +76,13 @@
             width: 65px;
             height: 79px;
             display: block;
-            margin: 20px auto; 
+            margin: 10px auto 20px; /* Mengatur margin atas 10px, bawah 20px, dan auto untuk tengah */
         }
 
         .main-content {
-            flex-grow: 1;
-            background-color: #ecf0f1;
+            flex-grow: 1; /* Menjadikan konten utama memanjang mengikuti tinggi */
             display: flex;
-            flex-direction: column;
-            padding: 20px;
+            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
         }
 
         .navbar {
@@ -96,8 +96,10 @@
 
         .content {
             display: flex;
-            flex-direction: column;
+            flex: 1; /* Mengisi sisa ruang di konten utama */
+            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
             align-items: center;
+            padding: 20px;
         }
 
         .card {
@@ -196,12 +198,12 @@
         }
 
         .profile a {
-            color: #ecf0f1; /* White color */
-            text-decoration: none; /* Remove underline */
+            color: #ecf0f1; /* Warna putih */
+            text-decoration: none; /* Menghapus garis bawah */
         }
 
         .profile a:hover {
-            text-decoration: underline; /* Add underline on hover */
+            text-decoration: underline; /* Menambah garis bawah saat dihover */
         }
 
         .details-container {
