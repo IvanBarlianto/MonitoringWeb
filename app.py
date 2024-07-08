@@ -188,6 +188,10 @@ def dashboard():
     else:
         return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 # Create tables if they do not exist
 with app.app_context():
     db.create_all()
