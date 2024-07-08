@@ -4,16 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css"> <!-- Ensure correct path to CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .sidebar ul li:first-child a {
+            background-image: url('/static/dashboard.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 35px; 
+        }
+        .sidebar ul li:nth-child(2) a {
+            background-image: url('/static/monitoring.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 35px; 
+        }
+        .sidebar ul li a {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-                <img src="/static/logo.png" alt="Logo" width="41" height="52" class="logo">
+            <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
             <ul>
-                <li><a href="dashboard">Dashboard</a></li>
-                <li><a href="data">Data Web</a></li>
+                <li><a href="dashboard">DASHBOARD</a></li>
+                <li><a href="data">DATA WEB</a></li>
             </ul>
         </aside>
 
@@ -26,7 +44,7 @@
                 </div>
                 <div class="navbar-right">
                     <div class="profile">
-                        <span>Profile</span>
+                        <a href="/profile"><span>Profile</span></a>
                     </div>
                 </div>
             </nav>
