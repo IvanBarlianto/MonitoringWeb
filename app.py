@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -9,19 +10,40 @@ import socket
 from ping3 import ping
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-import time  # Added for delay
-from datetime import datetime  # Added for date formatting
+import time
+from datetime import datetime
+import base64
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/monitoring_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-def ping_and_status_website(url):
-    domain = url.split('//')[-1].split('/')[0]
-    response_time = ping(domain)
-    if response_time is not None:
-        return f"{response_time} ms", "ACTIVE"
-    else:
-        return "Request timed out", "NON ACTIVE"
+# Define the MonitoringResult model
+class MonitoringResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(256), nullable=False)
+    ssl_expiry = db.Column(db.String(64), nullable=False)
+    ping_public = db.Column(db.String(64), nullable=False)
+    status = db.Column(db.String(64), nullable=False)
+    screenshot = db.Column(db.LargeBinary, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+
+
+@app.template_filter('b64encode')
+def b64encode_filter(data):
+    return base64.b64encode(data).decode('utf-8')
+
+# Function to check SSL expiry date
 def check_ssl(url):
     try:
         domain = url.split('//')[-1].split('/')[0]
@@ -34,22 +56,25 @@ def check_ssl(url):
         expiry_date = datetime.strptime(expiry_date_str, '%Y%m%d%H%M%SZ')
         return expiry_date.strftime('%d-%m-%Y')
     except Exception as e:
+        logging.error(f"Error checking SSL: {e}")
         return str(e)
 
+# Function to capture website screenshot
 def capture_screenshot(url):
-    options = webdriver.ChromeOptions()
-    options.add_argument('headless')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get(url)
-    
-    # Add a delay to ensure page fully loads before taking screenshot
-    time.sleep(10)
-    
-    screenshot_path = f'static/screenshots/{url.replace("https://", "").replace("http://", "").replace("/", "_")}.png'
-    driver.save_screenshot(screenshot_path)
-    driver.quit()
-    return screenshot_path
+    try:
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.get(url)
+        time.sleep(10)  # Add a delay to ensure page fully loads before taking screenshot
+        screenshot_data = driver.get_screenshot_as_png()
+        driver.quit()
+        return screenshot_data
+    except Exception as e:
+        logging.error(f"Error capturing screenshot: {e}")
+        return None
 
+# Function to make HTTP request
 def make_http_request(url):
     retry_strategy = Retry(
         total=3,
@@ -65,25 +90,30 @@ def make_http_request(url):
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:
+        logging.error(f"Error making HTTP request: {e}")
         raise Exception(f'Error making HTTP request: {str(e)}')
+
+def ping_and_status_website(url):
+    try:
+        ping_result = ping(url.split('//')[-1].split('/')[0])
+        if ping_result is None:
+            return "No response", "NON ACTIVE"
+        return f"{ping_result * 1000:.2f} ms", "ACTIVE"
+    except Exception as e:
+        logging.error(f"Error pinging website: {e}")
+        return "Error", "NON ACTIVE"
 
 @app.route('/')
 def index():
     return render_template('login.html')
 
+# Route for index page
 @app.route('/data')
 def data():
-    return render_template('data.html')
+    results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
+    return render_template('data.html', results=results)
 
-@app.route('/dashboard')
-def dashboard():
-    # Data simulasi
-    web_active = 5
-    web_non_active = 3
-    jumlah_web = web_active + web_non_active
-
-    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, jumlah_web=jumlah_web)
-
+# Route for checking website
 @app.route('/check', methods=['POST'])
 def check():
     data = request.json
@@ -93,19 +123,54 @@ def check():
 
     try:
         response = make_http_request(url)
-        # Proceed with further processing
         ssl_expiry = check_ssl(url)
         screenshot = capture_screenshot(url)
         ping_public, status = ping_and_status_website(url)
 
+        # Check if the URL already exists in the database
+        existing_result = MonitoringResult.query.filter_by(url=url).first()
+
+        if existing_result:
+            # Update existing record
+            existing_result.ssl_expiry = ssl_expiry
+            existing_result.ping_public = ping_public
+            existing_result.status = status
+            existing_result.screenshot = screenshot
+        else:
+            # Save monitoring result to database
+            result = MonitoringResult(
+                url=url,
+                ssl_expiry=ssl_expiry,
+                ping_public=ping_public,
+                status=status,
+                screenshot=screenshot  # Save raw screenshot data as BLOB
+            )
+            db.session.add(result)
+
+        db.session.commit()
+
         return jsonify({
             'ssl_expiry': ssl_expiry,
-            'screenshot': screenshot,
+            'screenshot': base64.b64encode(screenshot).decode('utf-8'),
             'ping_public': ping_public,
             'status': status
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Route for dashboard
+@app.route('/dashboard')
+def dashboard():
+    results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
+    web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
+    web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
+    total_web = web_active + web_non_active
+
+    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+
+# Create tables if they do not exist
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)
