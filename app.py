@@ -84,6 +84,10 @@ def dashboard():
 
     return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, jumlah_web=jumlah_web)
 
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 @app.route('/check', methods=['POST'])
 def check():
     data = request.json
