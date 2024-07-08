@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/monitoring_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
 db = SQLAlchemy(app)
 
 # Define the MonitoringResult model
@@ -33,11 +34,11 @@ class MonitoringResult(db.Model):
     screenshot = db.Column(db.LargeBinary, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Define the User model for authentication
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-
 
 @app.template_filter('b64encode')
 def b64encode_filter(data):
@@ -103,15 +104,32 @@ def ping_and_status_website(url):
         logging.error(f"Error pinging website: {e}")
         return "Error", "NON ACTIVE"
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Query the database for the user
+        user = User.query.filter_by(email=email, password=password).first()
+
+        if user:
+            # If user exists, store user data in session
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))  # Redirect to dashboard page after successful login
+        else:
+            return render_template('login.html', error='Invalid credentials')  # Show error message for invalid credentials
+
     return render_template('login.html')
 
 # Route for index page
 @app.route('/data')
 def data():
-    results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-    return render_template('data.html', results=results)
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
+        return render_template('data.html', results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
 # Route for checking website
 @app.route('/check', methods=['POST'])
@@ -158,15 +176,17 @@ def check():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Route for dashboard
 @app.route('/dashboard')
 def dashboard():
-    results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
-    web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
-    web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
-    total_web = web_active + web_non_active
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
+        web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
+        web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
+        total_web = web_active + web_non_active
 
-    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+        return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
 # Create tables if they do not exist
 with app.app_context():
