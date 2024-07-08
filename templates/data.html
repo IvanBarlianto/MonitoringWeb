@@ -7,6 +7,8 @@
     <title>Website Monitoring</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Include jQuery and DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
     <style>
         .sidebar ul li:first-child a {
             background-image: url('/static/dashboard.png');
@@ -62,7 +64,7 @@
                 </div>
             </div>
             <div class="result" id="result">
-                <table id="resultsTable">
+                <table id="resultsTable" class="display">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -90,7 +92,14 @@
         </main>
     </div>
 
+    <!-- Include jQuery and DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
+        $(document).ready(function() {
+            $('#resultsTable').DataTable();
+        });
+
         document.getElementById('monitorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const url = document.getElementById('url').value;
@@ -106,17 +115,15 @@
                     throw new Error(data.error || 'An unknown error occurred');
                 }
 
-                const resultTable = document.getElementById('resultsTable').querySelector('tbody');
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>${resultTable.rows.length + 1}</td>
-                    <td>${url}</td>
-                    <td>${data.ssl_expiry}</td>
-                    <td>${data.ping_public}</td>
-                    <td>${data.status}</td>
-                    <td><img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200"></td>
-                `;
-                resultTable.appendChild(newRow);
+                const resultTable = $('#resultsTable').DataTable();
+                resultTable.row.add([
+                    resultTable.data().length + 1,
+                    url,
+                    data.ssl_expiry,
+                    data.ping_public,
+                    data.status,
+                    `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
+                ]).draw();
             } catch (error) {
                 const errorDiv = document.createElement('div');
                 errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
