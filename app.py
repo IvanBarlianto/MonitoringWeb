@@ -125,8 +125,11 @@ def index():
 # Route for index page
 @app.route('/data')
 def data():
-    results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-    return render_template('data.html', results=results)
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
+        return render_template('data.html', results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
 # Route for checking website
 @app.route('/check', methods=['POST'])
@@ -173,15 +176,17 @@ def check():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Route for dashboard
 @app.route('/dashboard')
 def dashboard():
-    results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
-    web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
-    web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
-    total_web = web_active + web_non_active
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
+        web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
+        web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
+        total_web = web_active + web_non_active
 
-    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+        return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
 # Create tables if they do not exist
 with app.app_context():
