@@ -22,6 +22,43 @@
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
         }
+
+        .content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .card {
+            width: 300px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+            text-decoration: none; /* Menghilangkan garis bawah pada teks */
+            color: #ffffff; /* Warna teks putih */
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-decoration: none; /* Menghilangkan garis bawah pada teks */
+        }
+
+        .card p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff; /* Warna angka putih */
+        }
     </style>
 </head>
 <body>
@@ -51,18 +88,18 @@
 
             <!-- Content -->
             <div class="content">
-                <div class="card web-active">
+                <a href="/data" class="card web-active">
                     <h3>Active Website</h3>
                     <p id="web-active">{{ web_active }}</p>
-                </div>
-                <div class="card web-non-active">
+                </a>
+                <a href="/data" class="card web-non-active">
                     <h3>Non-Active Website</h3>
                     <p id="web-non-active">{{ web_non_active }}</p>
-                </div>
-                <div class="card jumlah-web">
+                </a>
+                <a href="/data" class="card jumlah-web">
                     <h3>Total Website</h3>
                     <p id="Total-web">{{ total_web }}</p>
-                </div>
+                </a>
             </div>
         </main>
     </div>
