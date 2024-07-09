@@ -88,6 +88,10 @@ def dashboard():
 def profile():
     return render_template('profile.html')
 
+@app.route('/home')
+def home():
+    return render_template('home.html')
+
 @app.route('/check', methods=['POST'])
 def check():
     data = request.json
