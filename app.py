@@ -69,7 +69,11 @@ def make_http_request(url):
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('login.html')
+
+@app.route('/data')
+def data():
+    return render_template('data.html')
 
 @app.route('/dashboard')
 def dashboard():
@@ -79,6 +83,14 @@ def dashboard():
     jumlah_web = web_active + web_non_active
 
     return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, jumlah_web=jumlah_web)
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
+@app.route('/home')
+def home():
+    return render_template('home.html')
 
 @app.route('/check', methods=['POST'])
 def check():

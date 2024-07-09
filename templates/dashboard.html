@@ -3,17 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Monitoring</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .sidebar ul li:first-child a {
+            background-image: url('/static/dashboard.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 25px; 
+        }
+        .sidebar ul li:nth-child(2) a {
+            background-image: url('/static/monitoring.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 35px; 
+            margin-top: 30px; 
+        }
+        .sidebar ul li a {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar ul li.active a {
+            background-color: #2980b9; 
+            color: #ecf0f1;
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .card {
+            width: 300px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+            text-decoration: none; 
+            color: #ffffff; 
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-decoration: none; 
+        }
+
+        .card p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff; 
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <h2>Menu</h2>
+            <a href="/home">
+                <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
+            </a>
             <ul>
-                <li><a href="home">Dashboard</a></li>
-                <li><a href="dashboard">Data Web</a></li>
+                <li class="active"><a href="dashboard">DASHBOARD</a></li>
+                <li><a href="data">DATA WEB</a></li>
             </ul>
         </aside>
 
@@ -22,73 +84,32 @@
             <!-- Navbar -->
             <nav class="navbar">
                 <div class="navbar-left">
-                    <h1>Website Monitoring</h1>
+                    <h1>Dashboard</h1>
                 </div>
                 <div class="navbar-right">
                     <div class="profile">
-                        <span>Profile</span>
+                        <a href="/profile"><span>Profile</span></a>
                     </div>
                 </div>
             </nav>
 
             <!-- Content -->
             <div class="content">
-                <div class="container-inner">
-                    <form id="monitorForm">
-                        <label for="url">Website URL:</label>
-                        <input type="text" id="url" name="url" required>
-                        <button type="submit">Check</button>
-                    </form>
-                </div>
-            </div>
-            <div class="result" id="result">
-                <table id="resultsTable">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>URL</th>
-                            <th>SSL Expiry</th>
-                            <th>PING PUBLIC</th>
-                            <th>STATUS</th>
-                            <th>CAPTURE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <a href="/data" class="card web-active">
+                    <h3>Active Website</h3>
+                    <p id="web-active">{{ web_active }}</p>
+                </a>
+                <a href="/data" class="card web-non-active">
+                    <h3>Non-Active Website</h3>
+                    <p id="web-non-active">{{ web_non_active }}</p>
+                </a>
+                <a href="/data" class="card jumlah-web">
+                    <h3>Total Website</h3>
+                    <p id="Total-web">{{ total_web }}</p>
+                </a>
             </div>
         </main>
     </div>
-
-    <script>
-        document.getElementById('monitorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const url = document.getElementById('url').value;
-            const response = await fetch('/check', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await response.json();
-            const resultTable = document.getElementById('resultsTable').querySelector('tbody');
-            if (response.ok) {
-                const newRow = resultTable.insertRow();
-                newRow.innerHTML = `
-                    <tr>
-                        <td>${resultTable.rows.length}</td>
-                        <td>${url}</td>
-                        <td>${data.ssl_expiry}</td>
-                        <td>${data.ping_public}</td>
-                        <td>${data.status}</td>
-                        <td><img src="${data.screenshot}" alt="Screenshot of ${url}"></td>
-                    </tr>
-                `;
-            } else {
-                const errorDiv = document.createElement('div');
-                errorDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
-                document.getElementById('result').appendChild(errorDiv);
-            }
-        });
-    </script>
+    <script src="/static/script.js"></script> 
 </body>
 </html>
