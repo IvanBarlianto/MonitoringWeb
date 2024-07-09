@@ -141,6 +141,10 @@ def data():
     results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
     return render_template('data.html', results=results)
 
+@app.route('/home')
+def home():
+    return render_template('home.html')
+
 @app.route('/check', methods=['POST'])
 @login_required
 def check():

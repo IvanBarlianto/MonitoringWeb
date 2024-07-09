@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Home</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -38,31 +38,34 @@
 
         .card {
             width: 300px;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
             cursor: pointer;
-            transition: transform 0.3s ease;
-            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
             text-decoration: none; 
-            color: #ffffff; 
+            color: #2980b9; 
+            background-color: #ecf0f1;
         }
 
         .card:hover {
             transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
 
         .card h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            text-decoration: none; 
+            font-size: 26px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #2c3e50; 
         }
 
         .card p {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            color: #ffffff; 
+            color: #2980b9;
         }
     </style>
 </head>
@@ -70,11 +73,9 @@
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <a href="/home">
-                <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
-            </a>
+            <a href="dashboard"><img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo"></a>
             <ul>
-                <li class="active"><a href="dashboard">DASHBOARD</a></li>
+                <li><a href="dashboard">DASHBOARD</a></li>
                 <li><a href="data">DATA WEB</a></li>
             </ul>
         </aside>
@@ -84,7 +85,7 @@
             <!-- Navbar -->
             <nav class="navbar">
                 <div class="navbar-left">
-                    <h1>Dashboard</h1>
+                    <h1>Home</h1>
                 </div>
                 <div class="navbar-right">
                     <div class="profile">
@@ -95,17 +96,13 @@
 
             <!-- Content -->
             <div class="content">
-                <a href="/data" class="card web-active">
-                    <h3>Active Website</h3>
-                    <p id="web-active">{{ web_active }}</p>
+                <a href="dashboard" class="card">
+                    <h3>Dashboard</h3>
+                    <p>Overview of activities</p>
                 </a>
-                <a href="/data" class="card web-non-active">
-                    <h3>Non-Active Website</h3>
-                    <p id="web-non-active">{{ web_non_active }}</p>
-                </a>
-                <a href="/data" class="card jumlah-web">
-                    <h3>Total Website</h3>
-                    <p id="Total-web">{{ total_web }}</p>
+                <a href="data" class="card">
+                    <h3>Data Web</h3>
+                    <p>View and manage data</p>
                 </a>
             </div>
         </main>
