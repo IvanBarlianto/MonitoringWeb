@@ -20,10 +20,15 @@
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 35px; 
+            padding-top: 25px; 
+            margin-top: 30px; 
         }
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
+        }
+        .sidebar ul li.active a {
+            background-color: #2980b9; /* Warna latar belakang aktif */
+            color: #ecf0f1;
         }
     </style>
 </head>
@@ -35,7 +40,7 @@
                 <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
             <ul>
                 <li><a href="dashboard">DASHBOARD</a></li>
-                <li><a href="data">DATA WEB</a></li>
+                <li class="active"><a href="data">DATA WEB</a></li>
             </ul>
         </aside>
 
