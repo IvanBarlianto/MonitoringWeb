@@ -37,7 +37,7 @@
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-                <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
+            <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
             <ul>
                 <li><a href="dashboard">DASHBOARD</a></li>
                 <li class="active"><a href="data">DATA WEB</a></li>
@@ -66,6 +66,8 @@
                         <input type="text" id="url" name="url" required>
                         <button type="submit">Check</button>
                     </form>
+                    <!-- Add Re-check Button -->
+                    <button id="recheckAll">Re-check All URLs</button>
                 </div>
             </div>
             <div class="result" id="result">
@@ -103,37 +105,38 @@
     <script>
         $(document).ready(function() {
             $('#resultsTable').DataTable();
-        });
+            
+            // Re-check all URLs button click event
+            $('#recheckAll').on('click', async function() {
+                const table = $('#resultsTable').DataTable();
+                const rows = table.rows().data(); // Get all rows data
+                
+                // Loop through each row
+                for (let i = 0; i < rows.length; i++) {
+                    const url = rows[i][1]; // Assuming URL is in the second column
+                    try {
+                        const response = await fetch('/check', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url })
+                        });
 
-        document.getElementById('monitorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const url = document.getElementById('url').value;
-            try {
-                const response = await fetch('/check', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.error || 'An unknown error occurred');
+                        }
 
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'An unknown error occurred');
+                        // Update the table with new data
+                        table.cell(i, 2).data(data.ssl_expiry); // Update SSL Expiry column
+                        table.cell(i, 3).data(data.ping_public); // Update Ping Public column
+                        table.cell(i, 4).data(data.status); // Update Status column
+                        table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`); // Update Screenshot column
+                    } catch (error) {
+                        console.error(`Error re-checking URL ${url}: ${error.message}`);
+                    }
                 }
-
-                const resultTable = $('#resultsTable').DataTable();
-                resultTable.row.add([
-                    resultTable.data().length + 1,
-                    url,
-                    data.ssl_expiry,
-                    data.ping_public,
-                    data.status,
-                    `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
-                ]).draw();
-            } catch (error) {
-                const errorDiv = document.createElement('div');
-                errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-                document.getElementById('result').appendChild(errorDiv);
-            }
+                table.draw(); // Redraw the updated table
+            });
         });
     </script>
 </body>
