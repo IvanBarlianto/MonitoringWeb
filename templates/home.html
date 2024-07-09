@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .sidebar ul li:first-child a {
+            background-image: url('/static/dashboard.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 25px; 
+        }
+        .sidebar ul li:nth-child(2) a {
+            background-image: url('/static/monitoring.png');
+            background-repeat: no-repeat;
+            background-position: top center;
+            padding-top: 35px; 
+            margin-top: 30px; 
+        }
+        .sidebar ul li a {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar ul li.active a {
+            background-color: #2980b9; 
+            color: #ecf0f1;
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .card {
+            width: 300px;
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            text-decoration: none; 
+            color: #2980b9; 
+            background-color: #ecf0f1;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h3 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #2c3e50; 
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="dashboard"><img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo"></a>
+            <ul>
+                <li><a href="dashboard">DASHBOARD</a></li>
+                <li><a href="data">DATA WEB</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar">
+                <div class="navbar-left">
+                    <h1>Home</h1>
+                </div>
+                <div class="navbar-right">
+                    <div class="profile">
+                        <a href="/profile"><span>Profile</span></a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Content -->
+            <div class="content">
+                <a href="dashboard" class="card">
+                    <h3>Dashboard</h3>
+                    <p>Overview of activities</p>
+                </a>
+                <a href="data" class="card">
+                    <h3>Data Web</h3>
+                    <p>View and manage data</p>
+                </a>
+            </div>
+        </main>
+    </div>
+    <script src="/static/script.js"></script> 
+</body>
+</html>
