@@ -24,7 +24,7 @@
             font-family: 'Poppins', sans-serif;
         }
         .sidebar ul li.active a {
-            background-color: #2980b9; /* Warna latar belakang aktif */
+            background-color: #2980b9; 
             color: #ecf0f1;
         }
 
@@ -45,8 +45,8 @@
             cursor: pointer;
             transition: transform 0.3s ease;
             margin-bottom: 20px;
-            text-decoration: none; /* Menghilangkan garis bawah pada teks */
-            color: #ffffff; /* Warna teks putih */
+            text-decoration: none; 
+            color: #ffffff; 
         }
 
         .card:hover {
@@ -56,13 +56,13 @@
         .card h3 {
             font-size: 24px;
             margin-bottom: 10px;
-            text-decoration: none; /* Menghilangkan garis bawah pada teks */
+            text-decoration: none; 
         }
 
         .card p {
             font-size: 20px;
             font-weight: bold;
-            color: #ffffff; /* Warna angka putih */
+            color: #ffffff; 
         }
     </style>
 </head>
@@ -70,7 +70,9 @@
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
+            <a href="/home">
+                <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
+            </a>
             <ul>
                 <li class="active"><a href="dashboard">DASHBOARD</a></li>
                 <li><a href="data">DATA WEB</a></li>
@@ -108,6 +110,6 @@
             </div>
         </main>
     </div>
-    <script src="/static/script.js"></script> <!-- Ensure correct path to JavaScript -->
+    <script src="/static/script.js"></script> 
 </body>
 </html>
