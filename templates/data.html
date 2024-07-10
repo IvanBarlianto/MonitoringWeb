@@ -14,20 +14,24 @@
             background-image: url('/static/dashboard.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 35px; 
+            padding-top: 35px;
         }
+
         .sidebar ul li:nth-child(2) a {
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 25px; 
-            margin-top: 30px; 
+            padding-top: 25px;
+            margin-top: 30px;
         }
+
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
         }
+
         .sidebar ul li.active a {
-            background-color: #2980b9; /* Warna latar belakang aktif */
+            background-color: #2980b9;
+            /* Warna latar belakang aktif */
             color: #ecf0f1;
         }
     </style>
@@ -92,7 +96,8 @@
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
                             <td>{{ result.status }}</td>
-                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}" alt="Screenshot of {{ result.url }}" width="200"></td>
+                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}"
+                                    alt="Screenshot of {{ result.url }}" width="200"></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -103,14 +108,15 @@
 
     <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#resultsTable').DataTable();
 
-            document.getElementById('monitorForm').addEventListener('submit', async function(e) {
+            $('#monitorForm').on('submit', async function (e) {
                 e.preventDefault();
-                const url = document.getElementById('url').value;
+                const url = $('#url').val();
                 try {
                     const response = await fetch('/check', {
                         method: 'POST',
@@ -133,42 +139,56 @@
                         `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
                     ]).draw();
                 } catch (error) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-                    document.getElementById('result').appendChild(errorDiv);
+                    const errorDiv = $('<div>').html(`<p style="color:red;">Error: ${error.message}</p>`);
+                    $('#result').append(errorDiv);
                 }
             });
 
-            // Re-check all URLs button click event
-            $('#recheckAll').on('click', async function() {
-                const table = $('#resultsTable').DataTable();
-                const rows = table.rows().data(); // Get all rows data
-                
-                // Loop through each row
-                for (let i = 0; i < rows.length; i++) {
-                    const url = rows[i][1]; // Assuming URL is in the second column
-                    try {
-                        const response = await fetch('/check', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url })
-                        });
+            $('#recheckAll').on('click', async function () {
+                try {
+                    // Fetch all URLs from the table
+                    const table = $('#resultsTable').DataTable();
+                    const data = table.rows().data();
+                    const urls = [];
 
-                        const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(data.error || 'An unknown error occurred');
-                        }
+                    // Extract URLs from the table data
+                    data.each(function (row) {
+                        urls.push(row[1]); // Assuming URL is in the second column
+                    });
 
-                        // Update the table with new data
-                        table.cell(i, 2).data(data.ssl_expiry); // Update SSL Expiry column
-                        table.cell(i, 3).data(data.ping_public); // Update Ping Public column
-                        table.cell(i, 4).data(data.status); // Update Status column
-                        table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`); // Update Screenshot column
-                    } catch (error) {
-                        console.error(`Error re-checking URL ${url}: ${error.message}`);
+                    // Make POST request to recheck-all endpoint
+                    const response = await fetch('/recheck-all', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ urls })
+                    });
+
+                    // Handle response
+                    if (!response.ok) {
+                        throw new Error('Failed to re-check all URLs');
                     }
+
+                    // Get re-check results from response
+                    const recheckResults = await response.json();
+
+                    // Update table with re-check results
+                    recheckResults.forEach((result) => {
+                        const index = urls.indexOf(result.url);
+                        if (index !== -1) {
+                            // Update table row with new data
+                            table.cell(index, 2).data(result.ssl_expiry);
+                            table.cell(index, 3).data(result.ping_public);
+                            table.cell(index, 4).data(result.status);
+                            table.cell(index, 5).data(`<img src="data:image/png;base64,${result.screenshot}" alt="Screenshot of ${result.url}" width="200">`);
+                        }
+                    });
+
+                    // Redraw the updated table
+                    table.draw();
+
+                } catch (error) {
+                    console.error('Error re-checking all URLs:', error);
                 }
-                table.draw(); // Redraw the updated table merge
             });
         });
     </script>
