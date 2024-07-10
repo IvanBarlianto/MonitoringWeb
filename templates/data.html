@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Website Monitoring</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Include jQuery and DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
     <style>
         .sidebar ul li:first-child a {
             background-image: url('/static/dashboard.png');
@@ -27,8 +30,99 @@
             background-color: #2980b9; /* Warna latar belakang aktif */
             color: #ecf0f1;
         }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile, .logout {
+            margin-left: 20px;
+        }
+
+        .logout button {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e74c3c;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout button:hover {
+            background-color: #ff0000;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 500px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal button:hover {
+            opacity: 0.8;
+        }
+
+        .modal button:nth-child(3) {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .modal button:nth-child(4) {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        .yes-logout {
+            color: #ff0000;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Sidebar -->
@@ -53,6 +147,9 @@
                     <div class="profile">
                         <a href="/profile"><span>Profile</span></a>
                     </div>
+                    <div class="logout">
+                        <button onclick="openLogoutModal()">Logout</button>
+                    </div>
                 </div>
             </nav>
 
@@ -67,53 +164,104 @@
                 </div>
             </div>
             <div class="result" id="result">
-                <table id="resultsTable">
+                <table id="resultsTable" class="display">
                     <thead>
                         <tr>
-                            <th>No.</th>
+                            <th>ID</th>
                             <th>URL</th>
                             <th>SSL Expiry</th>
-                            <th>PING PUBLIC</th>
-                            <th>STATUS</th>
-                            <th>CAPTURE</th>
+                            <th>Ping Public</th>
+                            <th>Status</th>
+                            <th>Screenshot</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.id }}</td>
+                            <td>{{ result.url }}</td>
+                            <td>{{ result.ssl_expiry }}</td>
+                            <td>{{ result.ping_public }}</td>
+                            <td>{{ result.status }}</td>
+                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}" alt="Screenshot of {{ result.url }}" width="200"></td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
 
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLogoutModal()">&times;</span>
+            <h2>Logout</h2>
+            <p>Are you sure you want to logout?</p>
+            <button class="yes-logout" onclick="logout()">Yes, Logout</button>
+            <button onclick="closeLogoutModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Include jQuery and DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
+        $(document).ready(function() {
+            $('#resultsTable').DataTable();
+        });
+
         document.getElementById('monitorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const url = document.getElementById('url').value;
-            const response = await fetch('/check', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await response.json();
-            const resultTable = document.getElementById('resultsTable').querySelector('tbody');
-            if (response.ok) {
-                const newRow = resultTable.insertRow();
-                newRow.innerHTML = `
-                    <tr>
-                        <td>${resultTable.rows.length}</td>
-                        <td>${url}</td>
-                        <td>${data.ssl_expiry}</td>
-                        <td>${data.ping_public}</td>
-                        <td>${data.status}</td>
-                        <td><img src="${data.screenshot}" alt="Screenshot of ${url}"></td>
-                    </tr>
-                `;
-            } else {
+            try {
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'An unknown error occurred');
+                }
+
+                const resultTable = $('#resultsTable').DataTable();
+                resultTable.row.add([
+                    resultTable.data().length + 1,
+                    url,
+                    data.ssl_expiry,
+                    data.ping_public,
+                    data.status,
+                    `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
+                ]).draw();
+            } catch (error) {
                 const errorDiv = document.createElement('div');
-                errorDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
                 document.getElementById('result').appendChild(errorDiv);
             }
         });
+
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'block';
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        function logout() {
+            // Logic to handle logout can go here, for example, form submission or AJAX request
+            // For now, we will just simulate a logout
+            window.location.href = '/logout';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
+            }
+        }
     </script>
 </body>
+
 </html>
