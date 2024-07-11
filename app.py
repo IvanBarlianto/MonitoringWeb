@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, make_response
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
@@ -105,13 +105,17 @@ def ping_and_status_website(url):
         logging.error(f"Error pinging website: {e}")
         return "Error", "NON ACTIVE"
 
-# Decorator to require login
+# Decorator to require login and prevent caching
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('index'))
-        return f(*args, **kwargs)
+        response = make_response(f(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     return decorated_function
 
 @app.route('/', methods=['GET', 'POST'])
@@ -208,9 +212,8 @@ def profile():
 @app.route('/logout')
 @login_required
 def logout():
-    # Clear the session
-    session.clear()
-    return render_template('logout.html')
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
 
 # Create tables if they do not exist
 with app.app_context():
