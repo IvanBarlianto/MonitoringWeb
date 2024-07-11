@@ -217,6 +217,13 @@ def dashboard():
 def profile():
     return render_template('profile.html')
 
+@app.route('/logout')
+@login_required
+def logout():
+    # Clear the session
+    session.clear()
+    return render_template('logout.html')
+
 # Create tables if they do not exist
 with app.app_context():
     db.create_all()
