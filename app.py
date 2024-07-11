@@ -55,7 +55,7 @@ def check_ssl(url):
         cert = conn.get_peer_certificate()
         expiry_date_str = cert.get_notAfter().decode('utf-8')
         expiry_date = datetime.strptime(expiry_date_str, '%Y%m%d%H%M%SZ')
-        return expiry_date.strftime('%d-%m-%Y')
+        return expiry_date.strftime('%Y-%m-%d')
     except Exception as e:
         logging.error(f"Error checking SSL: {e}")
         return str(e)

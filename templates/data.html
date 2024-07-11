@@ -101,6 +101,11 @@
         </main>
     </div>
 
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading">
+        <img src="/static/loading.gif" alt="Loading...">
+    </div>
+
     <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
@@ -108,8 +113,18 @@
         $(document).ready(function() {
             $('#resultsTable').DataTable();
 
+            function toggleLoading(show) {
+                const loadingElement = document.getElementById('loading');
+                if (show) {
+                    loadingElement.style.display = 'block';
+                } else {
+                    loadingElement.style.display = 'none';
+                }
+            }
+
             document.getElementById('monitorForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
+                toggleLoading(true);
                 const url = document.getElementById('url').value;
                 try {
                     const response = await fetch('/check', {
@@ -136,11 +151,14 @@
                     const errorDiv = document.createElement('div');
                     errorDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
                     document.getElementById('result').appendChild(errorDiv);
+                } finally {
+                    toggleLoading(false);
                 }
             });
 
             // Re-check all URLs button click event
             $('#recheckAll').on('click', async function() {
+                toggleLoading(true);
                 const table = $('#resultsTable').DataTable();
                 const rows = table.rows().data(); // Get all rows data
                 
@@ -169,6 +187,7 @@
                     }
                 }
                 table.draw(); // Redraw the updated table merge
+                toggleLoading(false);
             });
         });
     </script>
