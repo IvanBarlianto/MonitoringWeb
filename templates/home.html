@@ -30,21 +30,21 @@
 
         .content {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            margin-top: 50px;
+            margin-top: 20px; /* Reduced margin-top to lift cards higher */
+            gap: 20px;
         }
 
         .card {
-            width: 300px;
-            padding: 30px 20px;
+            width: 280px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 30px;
             text-decoration: none; 
             color: #2980b9; 
             background-color: #ecf0f1;
@@ -56,14 +56,14 @@
         }
 
         .card h3 {
-            font-size: 26px;
-            margin-bottom: 20px;
+            font-size: 24px;
+            margin-bottom: 15px;
             text-decoration: none;
             color: #2c3e50; 
         }
 
         .card p {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #2980b9;
         }
