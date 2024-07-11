@@ -6,6 +6,7 @@
     <title>Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        
         .sidebar ul li:first-child a {
             background-image: url('/static/dashboard.png');
             background-repeat: no-repeat;
@@ -103,6 +104,12 @@
         }
 
         .card {
+            display: none; /* Sembunyikan semua card kecuali card password */
+        }
+
+        .password-card {
+            width: 100%;
+            max-width: 400px; /* Lebar maksimum card password */
             background-color: #fff;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -111,26 +118,8 @@
             border-radius: 8px;
         }
 
-        .card h2 {
+        .password-card h2 {
             margin-top: 0;
-        }
-
-        .card label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        .card input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-            border-radius: 4px;
-            border: 1px solid #bdc3c7;
-        }
-
-        .password-card {
-            width: 100%;
         }
 
         .password-card .icon {
@@ -163,6 +152,9 @@
         .password-card .input-group input {
             flex: 3;
             margin-left: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
         }
 
         .password-card .input-group button {
@@ -187,6 +179,7 @@
             border-radius: 4px;
             cursor: pointer;
             align-self: flex-start;
+            margin-bottom: 20px; /* Added margin bottom for spacing */
         }
 
         .password-card button:hover {
@@ -214,6 +207,59 @@
 
         .details-card {
             width: 48%;
+        }
+
+        /* Logout modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 400px; /* Maximum width for the modal */
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal button {
+            padding: 10px 20px;
+            background-color: #2980b9;
+            color: #ecf0f1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .modal button:hover {
+            background-color: #3498db;
         }
 
     </style>
@@ -249,25 +295,7 @@
             
             <!-- Content -->
             <div class="content">
-                <div class="details-container">
-                    <div class="card details-card">
-                        <h2>Personal Details</h2>
-                        <label for="full-name">Full Name</label>
-                        <input type="text" id="full-name" name="full-name" value="Dylan Kaisar Hasya">
-                        <label for="organization-name">Organization Name</label>
-                        <input type="text" id="organization-name" name="organization-name" value="Mabes Polri">
-                        <label for="user-role">User Role</label>
-                        <input type="text" id="user-role" name="user-role" value="Monitoring Admin, Response Admin">
-                    </div>
-                    <div class="card details-card">
-                        <h2>Contact Details</h2>
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" value="dylankaisarh@gmail.com">
-                        <label for="contact-number">Contact Number</label>
-                        <input type="text" id="contact-number" name="contact-number" value="0308-2689-597">
-                    </div>
-                </div>
-                <div class="card password-card">
+                <div class="password-card">
                     <div class="icon">
                         <img src="/static/password.png" alt="Password Icon">
                         <h2>Password</h2>
@@ -276,17 +304,17 @@
                         <div class="input-group">
                             <label for="current-password">Current Password</label>
                             <input type="password" id="current-password" name="current-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('current-password')">👁️</button>
+                    
                         </div>
                         <div class="input-group">
                             <label for="new-password">New Password</label>
                             <input type="password" id="new-password" name="new-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('new-password')">👁️</button>
+                            
                         </div>
                         <div class="input-group">
                             <label for="confirm-new-password">Confirm New Password</label>
                             <input type="password" id="confirm-new-password" name="confirm-new-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('confirm-new-password')">👁️</button>
+                            
                         </div>
                         <button>Update Password</button>
                     </div>
