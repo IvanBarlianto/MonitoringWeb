@@ -307,36 +307,6 @@
                 toggleLoading(false);
             });
         });
-
-        $('#recheckAll').on('click', async function() {
-            const table = $('#resultsTable').DataTable();
-            const rows = table.rows().data();
-
-            for (let i = 0; i < rows.length; i++) {
-                const url = rows[i][1];
-                try {
-                    const response = await fetch('/check', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url })
-                    });
-
-                    const data = await response.json();
-                    if (!response.ok) {
-                        throw new Error(data.error || 'An unknown error occurred');
-                    }
-
-                    table.cell(i, 2).data(data.ssl_expiry);
-                    table.cell(i, 3).data(data.ping_public);
-                    table.cell(i, 4).data(data.status);
-                    table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`);
-                } catch (error) {
-                    console.error(`Error re-checking URL ${url}: ${error.message}`);
-                }
-            }
-            table.draw();
-        });
-
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }
