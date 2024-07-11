@@ -190,6 +190,18 @@ def check():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/delete_table', methods=['POST'])
+@login_required  # Ensure the user is logged in
+def delete_table():
+    try:
+        # Drop the MonitoringResult table
+        MonitoringResult.__table__.drop(db.engine)
+        # Recreate the table to ensure it can be used again
+        db.create_all()
+        return jsonify({'message': 'Table deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
