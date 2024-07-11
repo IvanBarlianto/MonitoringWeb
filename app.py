@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -16,37 +14,12 @@ import time
 from datetime import datetime
 import base64
 import logging
+from functools import wraps
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/monitoring_db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
-db = SQLAlchemy(app)
-
-# Define the MonitoringResult model
-class MonitoringResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(256), nullable=False)
-    ssl_expiry = db.Column(db.String(64), nullable=False)
-    ping_public = db.Column(db.String(64), nullable=False)
-    status = db.Column(db.String(64), nullable=False)
-    screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=False)  # LONGBLOB
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-# Define the User model for authentication
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(120), nullable=False)
-
-@app.template_filter('b64encode')
-def b64encode_filter(data):
-    return base64.b64encode(data).decode('utf-8')
-
-# Function to check SSL expiry date
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/monitoring_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
@@ -86,10 +59,8 @@ def check_ssl(url):
         return expiry_date.strftime('%d-%m-%Y')
     except Exception as e:
         logging.error(f"Error checking SSL: {e}")
-        logging.error(f"Error checking SSL: {e}")
         return str(e)
 
-# Function to capture website screenshot
 # Function to capture website screenshot
 def capture_screenshot(url):
     try:
@@ -97,7 +68,7 @@ def capture_screenshot(url):
         options.add_argument('headless')
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(url)
-        time.sleep(10)  # Add a delay to ensure page fully loads before taking screenshot
+        time.sleep(2)  # Reduce sleep time to 2 seconds
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
@@ -105,7 +76,6 @@ def capture_screenshot(url):
         logging.error(f"Error capturing screenshot: {e}")
         return None
 
-# Function to make HTTP request
 # Function to make HTTP request
 def make_http_request(url):
     retry_strategy = Retry(
@@ -123,7 +93,6 @@ def make_http_request(url):
         return response
     except requests.exceptions.RequestException as e:
         logging.error(f"Error making HTTP request: {e}")
-        logging.error(f"Error making HTTP request: {e}")
         raise Exception(f'Error making HTTP request: {str(e)}')
 
 def ping_and_status_website(url):
@@ -136,8 +105,20 @@ def ping_and_status_website(url):
         logging.error(f"Error pinging website: {e}")
         return "Error", "NON ACTIVE"
 
+# Decorator to require login
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))  # Redirect to dashboard if user is already logged in
+
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -154,17 +135,16 @@ def index():
 
     return render_template('login.html')
 
-# Route for index page
 @app.route('/data')
 @login_required
 def data():
-    if 'user_id' in session:
-        results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-        return render_template('data.html', results=results)
-    else:
-        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
+    results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
+    return render_template('data.html', results=results)
 
-# Route for checking website
+@app.route('/home')
+def home():
+    return render_template('home.html')
+
 @app.route('/check', methods=['POST'])
 @login_required
 def check():
@@ -201,31 +181,8 @@ def check():
 
         db.session.commit()
 
-        # Check if the URL already exists in the database
-        existing_result = MonitoringResult.query.filter_by(url=url).first()
-
-        if existing_result:
-            # Update existing record
-            existing_result.ssl_expiry = ssl_expiry
-            existing_result.ping_public = ping_public
-            existing_result.status = status
-            existing_result.screenshot = screenshot
-        else:
-            # Save monitoring result to database
-            result = MonitoringResult(
-                url=url,
-                ssl_expiry=ssl_expiry,
-                ping_public=ping_public,
-                status=status,
-                screenshot=screenshot  # Save raw screenshot data as BLOB
-            )
-            db.session.add(result)
-
-        db.session.commit()
-
         return jsonify({
             'ssl_expiry': ssl_expiry,
-            'screenshot': base64.b64encode(screenshot).decode('utf-8'),
             'screenshot': base64.b64encode(screenshot).decode('utf-8'),
             'ping_public': ping_public,
             'status': status
@@ -233,76 +190,18 @@ def check():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Route to re-check all URLs in the database
-@app.route('/recheck-all', methods=['POST'])
-def recheck_all():
-    try:
-        # Query all URLs from the database
-        results = MonitoringResult.query.all()
-
-        # List to store results
-        recheck_results = []
-
-        # Iterate through each result
-        for result in results:
-            url = result.url
-
-            try:
-                # Make HTTP request
-                response = make_http_request(url)
-                
-                # Check SSL
-                ssl_expiry = check_ssl(url)
-                
-                # Capture screenshot
-                screenshot = capture_screenshot(url)
-                
-                # Ping and status
-                ping_public, status = ping_and_status_website(url)
-
-                # Update existing result in the database
-                result.ssl_expiry = ssl_expiry
-                result.ping_public = ping_public
-                result.status = status
-                result.screenshot = screenshot
-
-                # Append updated result to recheck_results
-                recheck_results.append({
-                    'url': url,
-                    'ssl_expiry': ssl_expiry,
-                    'ping_public': ping_public,
-                    'status': status,
-                    'screenshot': base64.b64encode(screenshot).decode('utf-8')
-                })
-            except Exception as e:
-                # Append error if any occurred
-                recheck_results.append({
-                    'url': url,
-                    'error': str(e)
-                })
-
-        # Commit changes to the database
-        db.session.commit()
-
-        # Return JSON response with re-check results
-        return jsonify(recheck_results), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    if 'user_id' in session:
-        results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
-        web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
-        web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
-        total_web = web_active + web_non_active
+    results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
+    web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
+    web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
+    total_web = web_active + web_non_active
 
-        return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
-    else:
-        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
+    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
 
 @app.route('/profile')
+@login_required
 def profile():
     return render_template('profile.html')
 
@@ -311,4 +210,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
