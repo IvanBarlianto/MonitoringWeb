@@ -7,7 +7,6 @@
     <title>Website Monitoring</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Include jQuery and DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.css">
     <style>
         .sidebar ul li:first-child a {
@@ -60,7 +59,6 @@
             background-color: #ff0000;
         }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -125,12 +123,27 @@
         .yes-logout {
             color: #ff0000;
         }
+
+        .recheckAll {
+            margin-top: 20px;
+            font-family: 'Poppins', sans-serif;
+            background-color: #3498db;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .recheckAll:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <a href="/home">
                 <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
@@ -141,9 +154,7 @@
             </ul>
         </aside>
 
-        <!-- Main content -->
         <main class="main-content">
-            <!-- Navbar -->
             <nav class="navbar">
                 <div class="navbar-left">
                     <h1>Website Monitoring</h1>
@@ -158,7 +169,6 @@
                 </div>
             </nav>
 
-            <!-- Content -->
             <div class="content2">
                 <div class="container-inner">
                     <form id="monitorForm">
@@ -166,6 +176,7 @@
                         <input type="text" id="url" name="url" required>
                         <button type="submit">Check</button>
                     </form>
+                    <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
                 </div>
             </div>
             <div class="result" id="result">
@@ -198,7 +209,6 @@
         </main>
     </div>
 
-    <!-- Logout Modal -->
     <div id="logoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLogoutModal()">&times;</span>
@@ -298,6 +308,35 @@
             });
         });
 
+        $('#recheckAll').on('click', async function() {
+            const table = $('#resultsTable').DataTable();
+            const rows = table.rows().data();
+
+            for (let i = 0; i < rows.length; i++) {
+                const url = rows[i][1];
+                try {
+                    const response = await fetch('/check', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'An unknown error occurred');
+                    }
+
+                    table.cell(i, 2).data(data.ssl_expiry);
+                    table.cell(i, 3).data(data.ping_public);
+                    table.cell(i, 4).data(data.status);
+                    table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`);
+                } catch (error) {
+                    console.error(`Error re-checking URL ${url}: ${error.message}`);
+                }
+            }
+            table.draw();
+        });
+
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }
@@ -307,8 +346,6 @@
         }
 
         function logout() {
-            // Logic to handle logout can go here, for example, form submission or AJAX request
-            // For now, we will just simulate a logout
             window.location.href = '/logout';
         }
 
