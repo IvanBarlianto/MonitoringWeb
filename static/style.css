@@ -161,3 +161,37 @@ th {
 .profile a:hover {
     text-decoration: underline;
 }
+
+.sidebar ul li:first-child a {
+    background-image: url('/static/dashboard.png');
+    background-repeat: no-repeat;
+    background-position: top center;
+    padding-top: 35px; 
+}
+.sidebar ul li:nth-child(2) a {
+    background-image: url('/static/monitoring.png');
+    background-repeat: no-repeat;
+    background-position: top center;
+    padding-top: 25px; 
+    margin-top: 30px; 
+}
+.sidebar ul li a {
+    font-family: 'Poppins', sans-serif;
+}
+.sidebar ul li.active a {
+    background-color: #2980b9; /* Warna latar belakang aktif */
+    color: #ecf0f1;
+}
+/* Add loading spinner styles */
+.loading {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+.loading img {
+    width: 100px;
+    height: 100px;
+}
