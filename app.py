@@ -14,7 +14,6 @@ import time
 from datetime import datetime
 import base64
 import logging
-from functools import wraps
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -68,7 +67,7 @@ def capture_screenshot(url):
         options.add_argument('headless')
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(url)
-        time.sleep(2)  # Reduce sleep time to 2 seconds
+        time.sleep(10)  # Add a delay to ensure page fully loads before taking screenshot
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
@@ -105,20 +104,8 @@ def ping_and_status_website(url):
         logging.error(f"Error pinging website: {e}")
         return "Error", "NON ACTIVE"
 
-# Decorator to require login
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))  # Redirect to dashboard if user is already logged in
-
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -135,18 +122,17 @@ def index():
 
     return render_template('login.html')
 
+# Route for index page
 @app.route('/data')
-@login_required
 def data():
-    results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-    return render_template('data.html', results=results)
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
+        return render_template('data.html', results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
-@app.route('/home')
-def home():
-    return render_template('home.html')
-
+# Route for checking website
 @app.route('/check', methods=['POST'])
-@login_required
 def check():
     data = request.json
     url = data.get('url')
@@ -191,17 +177,18 @@ def check():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/dashboard')
-@login_required
 def dashboard():
-    results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
-    web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
-    web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
-    total_web = web_active + web_non_active
+    if 'user_id' in session:
+        results = MonitoringResult.query.order_by(MonitoringResult.timestamp.desc()).all()
+        web_active = MonitoringResult.query.filter_by(status='ACTIVE').count()
+        web_non_active = MonitoringResult.query.filter_by(status='NON ACTIVE').count()
+        total_web = web_active + web_non_active
 
-    return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+        return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
+    else:
+        return redirect(url_for('login.html'))  # Redirect to login if user is not authenticated
 
 @app.route('/profile')
-@login_required
 def profile():
     return render_template('profile.html')
 
@@ -210,4 +197,4 @@ with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
