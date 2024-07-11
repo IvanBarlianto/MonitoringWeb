@@ -14,42 +14,72 @@
             background-image: url('/static/dashboard.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 35px; 
+            padding-top: 35px;
         }
+
         .sidebar ul li:nth-child(2) a {
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 25px; 
-            margin-top: 30px; 
+            padding-top: 25px;
+            margin-top: 30px;
         }
+
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
         }
+
         .sidebar ul li.active a {
-            background-color: #2980b9; /* Warna latar belakang aktif */
+            background-color: #2980b9;
+            /* Warna latar belakang aktif */
             color: #ecf0f1;
         }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile,
+        .logout {
+            margin-left: 20px;
+        }
+
+        .logout button {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e74c3c;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout button:hover {
+            background-color: #ff0000;
+        }
+
         /* Modal styles */
         .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1; 
+            display: none;
+            position: fixed;
+            z-index: 1;
             left: 0;
             top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgb(0,0,0); 
-            background-color: rgba(0,0,0,0.4); 
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; 
+            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%; 
+            width: 80%;
             max-width: 500px;
             text-align: center;
             border-radius: 10px;
@@ -136,8 +166,6 @@
                         <input type="text" id="url" name="url" required>
                         <button type="submit">Check</button>
                     </form>
-                    <!-- Add Re-check Button -->
-                    <button id="recheckAll">Re-check All URLs</button>
                 </div>
             </div>
             <div class="result" id="result">
@@ -160,7 +188,8 @@
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
                             <td>{{ result.status }}</td>
-                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}" alt="Screenshot of {{ result.url }}" width="200"></td>
+                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}"
+                                    alt="Screenshot of {{ result.url }}" width="200"></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -169,36 +198,26 @@
         </main>
     </div>
 
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLogoutModal()">&times;</span>
+            <h2>Logout</h2>
+            <p>Are you sure you want to logout?</p>
+            <button class="yes-logout" onclick="logout()">Yes, Logout</button>
+            <button onclick="closeLogoutModal()">Cancel</button>
+        </div>
+    </div>
     <!-- Loading Spinner -->
     <div class="loading" id="loading">
         <img src="/static/loading.gif" alt="Loading...">
     </div>
-
     <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
-        function openLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'block';
-        }
-
-        function closeLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'none';
-        }
-
-        function logout() {
-            // Logic to handle logout can go here, for example, form submission or AJAX request
-            // For now, we will just simulate a logout
-            window.location.href = '/logout';
-        }
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('logoutModal')) {
-                closeLogoutModal();
-            }
-        }
-
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#resultsTable').DataTable();
 
             function toggleLoading(show) {
@@ -210,7 +229,7 @@
                 }
             }
 
-            document.getElementById('monitorForm').addEventListener('submit', async function(e) {
+            document.getElementById('monitorForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
                 toggleLoading(true);
                 const url = document.getElementById('url').value;
@@ -245,11 +264,11 @@
             });
 
             // Re-check all URLs button click event
-            $('#recheckAll').on('click', async function() {
+            $('#recheckAll').on('click', async function () {
                 toggleLoading(true);
                 const table = $('#resultsTable').DataTable();
                 const rows = table.rows().data(); // Get all rows data
-                
+
                 // Loop through each row
                 for (let i = 0; i < rows.length; i++) {
                     const url = rows[i][1]; // Assuming URL is in the second column
@@ -278,6 +297,26 @@
                 toggleLoading(false);
             });
         });
+
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'block';
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        function logout() {
+            // Logic to handle logout can go here, for example, form submission or AJAX request
+            // For now, we will just simulate a logout
+            window.location.href = '/logout';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
+            }
+        }
     </script>
 </body>
 
