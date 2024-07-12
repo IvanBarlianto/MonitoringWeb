@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, make_response
 from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
@@ -95,23 +96,17 @@ def make_http_request(url):
         logging.error(f"Error making HTTP request: {e}")
         raise Exception(f'Error making HTTP request: {str(e)}')
 
-def ping_and_status_website(url):
-    try:
-        ping_result = ping(url.split('//')[-1].split('/')[0])
-        if ping_result is None:
-            return "No response", "NON ACTIVE"
-        return f"{ping_result * 1000:.2f} ms", "ACTIVE"
-    except Exception as e:
-        logging.error(f"Error pinging website: {e}")
-        return "Error", "NON ACTIVE"
-
-# Decorator to require login
+# Decorator to require login and prevent caching
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('index'))
-        return f(*args, **kwargs)
+        response = make_response(f(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     return decorated_function
 
 @app.route('/', methods=['GET', 'POST'])
@@ -157,7 +152,8 @@ def check():
         response = make_http_request(url)
         ssl_expiry = check_ssl(url)
         screenshot = capture_screenshot(url)
-        ping_public, status = ping_and_status_website(url)
+        ping_public = f"{ping(url.split('//')[-1].split('/')[0]) * 1000:.2f} ms" if ping(url.split('//')[-1].split('/')[0]) else "No response"
+        status = "ACTIVE" if response.status_code == 200 else "NON ACTIVE"
 
         # Check if the URL already exists in the database
         existing_result = MonitoringResult.query.filter_by(url=url).first()
@@ -190,18 +186,6 @@ def check():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/delete_table', methods=['POST'])
-@login_required  # Ensure the user is logged in
-def delete_table():
-    try:
-        # Drop the MonitoringResult table
-        MonitoringResult.__table__.drop(db.engine)
-        # Recreate the table to ensure it can be used again
-        db.create_all()
-        return jsonify({'message': 'Table deleted successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -220,9 +204,8 @@ def profile():
 @app.route('/logout')
 @login_required
 def logout():
-    # Clear the session
-    session.clear()
-    return render_template('logout.html')
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
 
 # Create tables if they do not exist
 with app.app_context():
