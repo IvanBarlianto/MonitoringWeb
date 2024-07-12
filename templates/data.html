@@ -45,7 +45,8 @@
             align-items: center;
         }
 
-        .profile,.logout {
+        .profile,
+        .logout {
             margin-left: 20px;
         }
 
@@ -159,8 +160,8 @@
                 <img src="/static/logo.png" alt="Logo" width="65" height="79" class="logo">
             </a>
             <ul>
-                <li><a href="/dashboard">DASHBOARD</a></li>
-                <li class="active"><a href="/data">DATA WEB</a></li>
+                <li><a href="dashboard">DASHBOARD</a></li>
+                <li class="active"><a href="data">DATA WEB</a></li>
             </ul>
         </aside>
 
@@ -175,9 +176,6 @@
                     </div>
                     <div class="logout">
                         <button onclick="openLogoutModal()">Logout</button>
-                    </div>
-                    <div class="delete-table">
-                        <button onclick="deleteTable()">Delete Table</button>
                     </div>
                 </div>
             </nav>
@@ -320,7 +318,6 @@
                 toggleLoading(false);
             });
         });
-
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }
@@ -331,24 +328,6 @@
 
         function logout() {
             window.location.href = '/logout';
-        }
-
-        function deleteTable() {
-            if (confirm("Are you sure you want to delete the table? This action cannot be undone.")) {
-                fetch('/delete_table', {
-                    method: 'POST'
-                }).then(response => response.json()).then(data => {
-                    if (data.message) {
-                        alert(data.message);
-                        location.reload();  // Reload the page to reflect the changes
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the table.');
-                });
-            }
         }
 
         window.onclick = function (event) {
