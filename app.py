@@ -78,17 +78,8 @@ def capture_screenshot(url):
 
 # Function to make HTTP request
 def make_http_request(url):
-    retry_strategy = Retry(
-        total=3,
-        backoff_factor=1,
-        status_forcelist=[500, 502, 503, 504],
-    )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session = requests.Session()
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
     try:
-        response = session.get(url, timeout=30)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:
