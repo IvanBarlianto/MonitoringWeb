@@ -32,7 +32,7 @@ class MonitoringResult(db.Model):
     ssl_expiry = db.Column(db.String(64), nullable=False)
     ping_public = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(64), nullable=False)
-    screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=False)  # LONGBLOB
+    screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=True)  # LONGBLOB
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Define the User model for authentication
@@ -151,39 +151,42 @@ def check():
         response = make_http_request(url)
         ssl_expiry = check_ssl(url)
         screenshot = capture_screenshot(url)
-        ping_public = f"{ping(url.split('//')[-1].split('/')[0]) * 1000:.2f} ms" if ping(url.split('//')[-1].split('/')[0]) else "No response"
-        status = "ACTIVE" if response.status_code == 200 else "NON ACTIVE"
+        ping_public, status = ping_and_status_website(url)
+    except (requests.exceptions.RequestException, Exception) as e:
+        logging.error(f"Error making HTTP request: {e}")
+        ssl_expiry = "N/A"
+        screenshot = None  # Indicate that screenshot is not available
+        ping_public = "Error"
+        status = "NON ACTIVE"
 
-        # Check if the URL already exists in the database
-        existing_result = MonitoringResult.query.filter_by(url=url).first()
+    # Check if the URL already exists in the database
+    existing_result = MonitoringResult.query.filter_by(url=url).first()
 
-        if existing_result:
-            # Update existing record
-            existing_result.ssl_expiry = ssl_expiry
-            existing_result.ping_public = ping_public
-            existing_result.status = status
-            existing_result.screenshot = screenshot
-        else:
-            # Save monitoring result to database
-            result = MonitoringResult(
-                url=url,
-                ssl_expiry=ssl_expiry,
-                ping_public=ping_public,
-                status=status,
-                screenshot=screenshot  # Save raw screenshot data as BLOB
-            )
-            db.session.add(result)
+    if existing_result:
+        # Update existing record
+        existing_result.ssl_expiry = ssl_expiry
+        existing_result.ping_public = ping_public
+        existing_result.status = status
+        existing_result.screenshot = screenshot if screenshot else b"-"  # Use placeholder if screenshot is None
+    else:
+        # Save monitoring result to database
+        result = MonitoringResult(
+            url=url,
+            ssl_expiry=ssl_expiry,
+            ping_public=ping_public,
+            status=status,
+            screenshot=screenshot if screenshot else b"-"  # Use placeholder if screenshot is None
+        )
+        db.session.add(result)
 
-        db.session.commit()
+    db.session.commit()
 
-        return jsonify({
-            'ssl_expiry': ssl_expiry,
-            'screenshot': base64.b64encode(screenshot).decode('utf-8'),
-            'ping_public': ping_public,
-            'status': status
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({
+        'ssl_expiry': ssl_expiry,
+        'screenshot': base64.b64encode(screenshot).decode('utf-8') if screenshot else "-",
+        'ping_public': ping_public,
+        'status': status
+    })
 
 @app.route('/dashboard')
 @login_required
