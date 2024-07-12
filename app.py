@@ -95,16 +95,6 @@ def make_http_request(url):
         logging.error(f"Error making HTTP request: {e}")
         raise Exception(f'Error making HTTP request: {str(e)}')
 
-def ping_and_status_website(url):
-    try:
-        ping_result = ping(url.split('//')[-1].split('/')[0])
-        if ping_result is None:
-            return "No response", "NON ACTIVE"
-        return f"{ping_result * 1000:.2f} ms", "ACTIVE"
-    except Exception as e:
-        logging.error(f"Error pinging website: {e}")
-        return "Error", "NON ACTIVE"
-
 # Decorator to require login and prevent caching
 def login_required(f):
     @wraps(f)
@@ -161,7 +151,8 @@ def check():
         response = make_http_request(url)
         ssl_expiry = check_ssl(url)
         screenshot = capture_screenshot(url)
-        ping_public, status = ping_and_status_website(url)
+        ping_public = f"{ping(url.split('//')[-1].split('/')[0]) * 1000:.2f} ms" if ping(url.split('//')[-1].split('/')[0]) else "No response"
+        status = "ACTIVE" if response.status_code == 200 else "NON ACTIVE"
 
         # Check if the URL already exists in the database
         existing_result = MonitoringResult.query.filter_by(url=url).first()
