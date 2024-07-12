@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import validators
 from OpenSSL import SSL
 import socket
@@ -66,7 +65,7 @@ def capture_screenshot(url):
     try:
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(service=Service("C:/chromedriver-win64/chromedriver.exe"), options=options)
         driver.get(url)
         time.sleep(2)  # Reduce sleep time to 2 seconds
         screenshot_data = driver.get_screenshot_as_png()
