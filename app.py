@@ -196,6 +196,15 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('index'))
 
+@app.route('/delete/<int:id>', methods=['DELETE'])
+def delete_entry(id):
+    result = MonitoringResult.query.get(id)
+    if result:
+        db.session.delete(result)
+        db.session.commit()
+        return jsonify({'message': 'Entry deleted successfully'}), 200
+    return jsonify({'error': 'Entry not found'}), 404
+
 # Create tables if they do not exist
 with app.app_context():
     db.create_all()
