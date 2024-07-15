@@ -6,6 +6,25 @@
     <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Styling for the form */
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .toggle-password {
+            background-color: #2980b9;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            margin-top: 20px;
+        }
+        .toggle-password:hover {
+            background-color: #3498db;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -45,15 +64,18 @@
                         <form action="/profile" method="POST">
                             <div class="input-group">
                                 <label for="current-password">Current Password</label>
-                                <input type="password" id="current-password" name="current_password" required>
+                                <input type="password" id="password" name="password" required>
+                                <button type="button" class="toggle-password" toggle="#password">Show</button>
                             </div>
                             <div class="input-group">
                                 <label for="new-password">New Password</label>
                                 <input type="password" id="new-password" name="new_password" required>
+                                <button type="button" class="toggle-password" toggle="#new-password">Show</button>
                             </div>
                             <div class="input-group">
                                 <label for="confirm-new-password">Confirm New Password</label>
                                 <input type="password" id="confirm-new-password" name="confirm_new_password" required>
+                                <button type="button" class="toggle-password" toggle="#confirm-new-password">Show</button>
                             </div>
                             <button type="submit">Update Password</button>
                         </form>
@@ -62,5 +84,21 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Functionality to show/hide password
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var toggle = document.querySelector(button.getAttribute('toggle'));
+                if (toggle.type === 'password') {
+                    toggle.type = 'text';
+                    button.textContent = 'Hide';
+                } else {
+                    toggle.type = 'password';
+                    button.textContent = 'Show';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
