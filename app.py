@@ -67,7 +67,7 @@ def capture_screenshot(url):
         options.add_argument('headless')
         driver = webdriver.Chrome(service=Service("C:/chromedriver-win64/chromedriver.exe"), options=options)
         driver.get(url)
-        time.sleep(2)  # Reduce sleep time to 2 seconds
+        time.sleep(0)  # Reduce sleep time to 2 seconds
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
