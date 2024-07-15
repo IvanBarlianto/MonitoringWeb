@@ -6,21 +6,25 @@
     <title>Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        
         .sidebar ul li:first-child a {
             background-image: url('/static/dashboard.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 35px; 
+            padding-top: 25px;
         }
         .sidebar ul li:nth-child(2) a {
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
             background-position: top center;
-            padding-top: 35px; 
+            padding-top: 35px;
+            margin-top: 30px;
         }
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
+        }
+        .sidebar ul li.active a {
+            background-color: #2980b9;
+            color: #ecf0f1;
         }
         body {
             font-family: Arial, sans-serif;
@@ -29,12 +33,10 @@
             display: flex;
             height: 100vh;
         }
-
         .container {
             display: flex;
             width: 100%;
         }
-
         .sidebar {
             width: 90px;
             height: 100vh;
@@ -47,18 +49,15 @@
             align-items: center;
             justify-content: flex-start;
         }
-
         .sidebar h2 {
             margin-top: 0;
         }
-
         .sidebar ul {
             list-style: none;
             padding: 0;
             width: 100%;
-            margin-top: 0; /* Menghapus margin atas untuk list */
+            margin-top: 0;
         }
-
         .sidebar ul li a {
             color: #ecf0f1;
             text-decoration: none;
@@ -68,24 +67,20 @@
             border-radius: 5px;
             text-align: center;
         }
-
         .sidebar ul li a:hover {
             background-color: #34495e;
         }
-
         .logo {
             width: 65px;
             height: 79px;
             display: block;
-            margin: 10px auto 20px; /* Mengatur margin atas 10px, bawah 20px, dan auto untuk tengah */
+            margin: 0px auto 15px;
         }
-
         .main-content {
-            flex-grow: 1; /* Menjadikan konten utama memanjang mengikuti tinggi */
+            flex-grow: 1;
             display: flex;
-            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
+            flex-direction: column;
         }
-
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -94,22 +89,16 @@
             background-color: #2980b9;
             color: #ecf0f1;
         }
-
         .content {
             display: flex;
-            flex: 1; /* Mengisi sisa ruang di konten utama */
-            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
+            flex: 1;
+            flex-direction: column;
             align-items: center;
             padding: 20px;
         }
-
-        .card {
-            display: none; /* Sembunyikan semua card kecuali card password */
-        }
-
         .password-card {
             width: 100%;
-            max-width: 400px; /* Lebar maksimum card password */
+            max-width: 400px;
             background-color: #fff;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -117,38 +106,31 @@
             box-sizing: border-box;
             border-radius: 8px;
         }
-
         .password-card h2 {
             margin-top: 0;
         }
-
         .password-card .icon {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
         }
-
         .password-card .icon img {
             width: 50px;
             height: 50px;
             margin-right: 10px;
         }
-
         .password-card .form {
             display: flex;
             flex-direction: column;
         }
-
         .password-card .input-group {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-
         .password-card .input-group label {
             flex: 1;
         }
-
         .password-card .input-group input {
             flex: 3;
             margin-left: 10px;
@@ -156,7 +138,6 @@
             border-radius: 4px;
             border: 1px solid #bdc3c7;
         }
-
         .password-card .input-group button {
             margin-left: 10px;
             padding: 8px;
@@ -166,11 +147,9 @@
             border-radius: 4px;
             cursor: pointer;
         }
-
         .password-card .input-group button:hover {
             background-color: #3498db;
         }
-
         .password-card button {
             padding: 10px;
             background-color: #2980b9;
@@ -179,75 +158,63 @@
             border-radius: 4px;
             cursor: pointer;
             align-self: flex-start;
-            margin-bottom: 20px; /* Added margin bottom for spacing */
+            margin-bottom: 20px;
         }
-
         .password-card button:hover {
             background-color: #3498db;
         }
-
         .profile {
             cursor: pointer;
         }
-
         .profile a {
-            color: #ecf0f1; /* Warna putih */
-            text-decoration: none; /* Menghapus garis bawah */
+            color: #ecf0f1;
+            text-decoration: none;
         }
-
         .profile a:hover {
-            text-decoration: underline; /* Menambah garis bawah saat dihover */
+            text-decoration: underline;
         }
-
         .details-container {
             display: flex;
             justify-content: space-between;
             width: 100%;
         }
-
         .details-card {
             width: 48%;
         }
-
-        /* Logout modal styles */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
+            display: none;
+            position: fixed;
+            z-index: 1;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgb(0,0,0); /* Fallback color */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
             padding-top: 60px;
         }
-
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto; /* 15% from the top and centered */
+            margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
-            max-width: 400px; /* Maximum width for the modal */
+            width: 80%;
+            max-width: 400px;
             border-radius: 8px;
         }
-
         .close {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-
         .close:hover,
         .close:focus {
             color: black;
             text-decoration: none;
             cursor: pointer;
         }
-
         .modal button {
             padding: 10px 20px;
             background-color: #2980b9;
@@ -257,11 +224,9 @@
             cursor: pointer;
             margin-top: 10px;
         }
-
         .modal button:hover {
             background-color: #3498db;
         }
-
     </style>
 </head>
 <body>
@@ -269,16 +234,15 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="/home">
-            <div class="logo">
-                <img src="/static/logo.png" alt="Logo" width="65" height="79">
+                <div class="logo">
+                    <img src="/static/logo.png" alt="Logo" width="65" height="79">
+                </div>
             </a>
-            </div>
             <ul class="menu">
-                <li><a href="dashboard">DASHBOARD</a></li>
-                <li><a href="data">DATA WEB</a></li>
+                <li><a href="/dashboard">DASHBOARD</a></li>
+                <li><a href="/data">DATA WEB</a></li>
             </ul>
         </aside>
-
         <!-- Main content -->
         <main class="main-content">
             <!-- Navbar -->
@@ -292,7 +256,6 @@
                     </div>
                 </div>
             </nav>
-            
             <!-- Content -->
             <div class="content">
                 <div class="password-card">
@@ -301,37 +264,25 @@
                         <h2>Password</h2>
                     </div>
                     <div class="form">
-                        <div class="input-group">
-                            <label for="current-password">Current Password</label>
-                            <input type="password" id="current-password" name="current-password" value="********">
-                    
-                        </div>
-                        <div class="input-group">
-                            <label for="new-password">New Password</label>
-                            <input type="password" id="new-password" name="new-password" value="********">
-                            
-                        </div>
-                        <div class="input-group">
-                            <label for="confirm-new-password">Confirm New Password</label>
-                            <input type="password" id="confirm-new-password" name="confirm-new-password" value="********">
-                            
-                        </div>
-                        <button>Update Password</button>
+                        <form action="/profile" method="POST">
+                            <div class="input-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" name="current_password" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" name="new_password" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="confirm-new-password">Confirm New Password</label>
+                                <input type="password" id="confirm-new-password" name="confirm_new_password" required>
+                            </div>
+                            <button type="submit">Update Password</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-    <script>
-        function togglePasswordVisibility(id) {
-            const input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-            } else {
-                input.type = 'password';
-            }
-        }
-    </script>
 </body>
 </html>
