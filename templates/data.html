@@ -181,7 +181,7 @@
                 <table id="resultsTable" class="display">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>No</th>
                             <th>URL</th>
                             <th>SSL Expiry</th>
                             <th>Ping Public</th>
@@ -192,7 +192,6 @@
                     <tbody>
                         {% for result in results %}
                         <tr>
-                            <td>{{ result.id }}</td>
                             <td>{{ result.url }}</td>
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
