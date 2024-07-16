@@ -248,7 +248,7 @@
                     "orderable": true,
                     "targets": 0
                 }],
-                "order": [[1, 'asc']],
+                "order": [[1, 'dsc']],
                 "drawCallback": function (settings) {
                     var api = this.api();
                     api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
@@ -280,7 +280,6 @@
                     }
                 }
             });
-            
             function toggleLoading(show) {
                 const loadingElement = document.getElementById('loading');
                 if (show) {
