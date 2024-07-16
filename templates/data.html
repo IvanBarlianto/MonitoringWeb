@@ -202,7 +202,7 @@
                     <tbody>
                         {% for result in results %}
                         <tr>
-                            <td>{{ loop.index }}</td>
+                            <td></td>
                             <td>{{ result.url }}</td>
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
@@ -237,7 +237,20 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
         $(document).ready(function () {
-            $('#resultsTable').DataTable();
+            var resultTable = $('#resultsTable').DataTable({
+                "columnDefs": [{
+                    "searchable": false,
+                    "orderable": true,
+                    "targets": 0
+                }],
+                "order": [[1, 'dsc']],
+                "drawCallback": function (settings) {
+                    var api = this.api();
+                    api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1;
+                    });
+                }
+            });
 
             function toggleLoading(show) {
                 const loadingElement = document.getElementById('loading');
