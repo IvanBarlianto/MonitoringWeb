@@ -202,6 +202,7 @@
                     <tbody>
                         {% for result in results %}
                         <tr>
+                            <td>{{ loop.index }}</td>
                             <td>{{ result.url }}</td>
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
@@ -265,7 +266,7 @@
 
                     const resultTable = $('#resultsTable').DataTable();
                     resultTable.row.add([
-                        resultTable.data().length + 1,
+                        resultTable.data().count() + 1,
                         url,
                         data.ssl_expiry,
                         data.ping_public,
@@ -285,11 +286,10 @@
             $('#recheckAll').on('click', async function () {
                 toggleLoading(true);
                 const table = $('#resultsTable').DataTable();
-                const rows = table.rows().data(); // Get all rows data
+                const rows = table.rows().data();
 
-                // Loop through each row
                 for (let i = 0; i < rows.length; i++) {
-                    const url = rows[i][1]; // Assuming URL is in the second column
+                    const url = rows[i][1];
                     try {
                         const response = await fetch('/check', {
                             method: 'POST',
@@ -302,16 +302,15 @@
                             throw new Error(data.error || 'An unknown error occurred');
                         }
 
-                        // Update the table with new data
-                        table.cell(i, 2).data(data.ssl_expiry); // Update SSL Expiry column
-                        table.cell(i, 3).data(data.ping_public); // Update Ping Public column
-                        table.cell(i, 4).data(data.status); // Update Status column
-                        table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`); // Update Screenshot column
+                        table.cell(i, 2).data(data.ssl_expiry);
+                        table.cell(i, 3).data(data.ping_public);
+                        table.cell(i, 4).data(data.status);
+                        table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`);
                     } catch (error) {
                         console.error(`Error re-checking URL ${url}: ${error.message}`);
                     }
                 }
-                table.draw(); // Redraw the updated table
+                table.draw();
                 toggleLoading(false);
             });
         });
@@ -320,20 +319,19 @@
             document.getElementById('logoutModal').style.display = 'block';
         }
 
-            function closeLogoutModal() {
-                document.getElementById('logoutModal').style.display = 'none';
-            }
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
 
-            function logout() {
-                window.location.href = '/logout';
-            }
+        function logout() {
+            window.location.href = '/logout';
+        }
 
-            window.onclick = function (event) {
-                if (event.target == document.getElementById('logoutModal')) {
-                    closeLogoutModal();
-                }
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
             }
-        });
+        };
     </script>
 </body>
 
