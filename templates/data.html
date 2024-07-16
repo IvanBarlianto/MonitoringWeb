@@ -232,7 +232,7 @@
     <div class="loading" id="loading">
         <img src="/static/loading.gif" alt="Loading...">
     </div>
-    <!-- Include jQuery and DataTables JS -->
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8"
         src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
@@ -240,6 +240,14 @@
         $(document).ready(function () {
             $('#resultsTable').DataTable();
 
+            function toggleLoading(show) {
+                const loadingElement = document.getElementById('loading');
+                if (show) {
+                    loadingElement.style.display = 'block';
+                } else {
+                    loadingElement.style.display = 'none';
+                }
+            });
             function toggleLoading(show) {
                 const loadingElement = document.getElementById('loading');
                 if (show) {
