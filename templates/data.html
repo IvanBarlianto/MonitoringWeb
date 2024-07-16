@@ -17,26 +17,20 @@
             padding-top: 35px;
         }
 
-
         .sidebar ul li:nth-child(2) a {
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
             background-position: top center;
             padding-top: 25px;
             margin-top: 30px;
-            padding-top: 25px;
-            margin-top: 30px;
         }
-
 
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
         }
 
-
         .sidebar ul li.active a {
             background-color: #2980b9;
-            /* Warna latar belakang aktif */
             color: #ecf0f1;
         }
 
@@ -68,25 +62,19 @@
             display: none;
             position: fixed;
             z-index: 1;
-            display: none;
-            position: fixed;
-            z-index: 1;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0, 0, 0);
             background-color: rgba(0, 0, 0, 0.4);
         }
 
         .modal-content {
             background-color: #fefefe;
             margin: 15% auto;
-            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
             width: 80%;
             max-width: 500px;
             text-align: center;
@@ -234,20 +222,11 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" charset="utf8"
-        src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
     <script>
         $(document).ready(function () {
             $('#resultsTable').DataTable();
 
-            function toggleLoading(show) {
-                const loadingElement = document.getElementById('loading');
-                if (show) {
-                    loadingElement.style.display = 'block';
-                } else {
-                    loadingElement.style.display = 'none';
-                }
-            });
             function toggleLoading(show) {
                 const loadingElement = document.getElementById('loading');
                 if (show) {
@@ -321,27 +300,28 @@
                         console.error(`Error re-checking URL ${url}: ${error.message}`);
                     }
                 }
-                table.draw(); // Redraw the updated table merge
+                table.draw(); // Redraw the updated table
                 toggleLoading(false);
             });
-        });
-        function openLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'block';
-        }
 
-        function closeLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'none';
-        }
-
-        function logout() {
-            window.location.href = '/logout';
-        }
-
-        window.onclick = function (event) {
-            if (event.target == document.getElementById('logoutModal')) {
-                closeLogoutModal();
+            function openLogoutModal() {
+                document.getElementById('logoutModal').style.display = 'block';
             }
-        }
+
+            function closeLogoutModal() {
+                document.getElementById('logoutModal').style.display = 'none';
+            }
+
+            function logout() {
+                window.location.href = '/logout';
+            }
+
+            window.onclick = function (event) {
+                if (event.target == document.getElementById('logoutModal')) {
+                    closeLogoutModal();
+                }
+            }
+        });
     </script>
 </body>
 
