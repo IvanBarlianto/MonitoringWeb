@@ -4,218 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        .sidebar ul li:first-child a {
-            background-image: url('/static/dashboard.png');
-            background-repeat: no-repeat;
-            background-position: top center;
-            padding-top: 35px; 
-        }
-        .sidebar ul li:nth-child(2) a {
-            background-image: url('/static/monitoring.png');
-            background-repeat: no-repeat;
-            background-position: top center;
-            padding-top: 35px; 
-        }
-        .sidebar ul li a {
-            font-family: 'Poppins', sans-serif;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            width: 100%;
-        }
-
-        .sidebar {
-            width: 90px;
-            height: 100vh;
-            background-color: #103A5E;
-            color: #ecf0f1;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .sidebar h2 {
-            margin-top: 0;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-            margin-top: 0; /* Menghapus margin atas untuk list */
-        }
-
-        .sidebar ul li a {
-            color: #ecf0f1;
-            text-decoration: none;
-            font-size: 12px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-
-        .sidebar ul li a:hover {
-            background-color: #34495e;
-        }
-
-        .logo {
-            width: 65px;
-            height: 79px;
-            display: block;
-            margin: 10px auto 20px; /* Mengatur margin atas 10px, bawah 20px, dan auto untuk tengah */
-        }
-
-        .main-content {
-            flex-grow: 1; /* Menjadikan konten utama memanjang mengikuti tinggi */
-            display: flex;
-            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #2980b9;
-            color: #ecf0f1;
-        }
-
-        .content {
-            display: flex;
-            flex: 1; /* Mengisi sisa ruang di konten utama */
-            flex-direction: column; /* Menjadikan layout utama dalam bentuk kolom */
-            align-items: center;
-            padding: 20px;
-        }
-
-        .card {
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            border-radius: 8px;
-        }
-
-        .card h2 {
-            margin-top: 0;
-        }
-
-        .card label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        .card input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-            border-radius: 4px;
-            border: 1px solid #bdc3c7;
-        }
-
-        .password-card {
-            width: 100%;
-        }
-
-        .password-card .icon {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .password-card .icon img {
-            width: 50px;
-            height: 50px;
-            margin-right: 10px;
-        }
-
-        .password-card .form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .password-card .input-group {
-            display: flex;
-            align-items: center;
+        /* Styling for the form */
+        .input-group {
             margin-bottom: 10px;
         }
-
-        .password-card .input-group label {
-            flex: 1;
-        }
-
-        .password-card .input-group input {
-            flex: 3;
-            margin-left: 10px;
-        }
-
-        .password-card .input-group button {
-            margin-left: 10px;
+        .toggle-password {
+            background-color: #2980b9;
+            color: #fff;
+            border: none;
             padding: 8px;
-            border: none;
-            background-color: #2980b9;
-            color: #ecf0f1;
             border-radius: 4px;
             cursor: pointer;
+            margin-left: 10px;
+            margin-top: 20px;
         }
-
-        .password-card .input-group button:hover {
+        .toggle-password:hover {
             background-color: #3498db;
         }
-
-        .password-card button {
-            padding: 10px;
-            background-color: #2980b9;
-            color: #ecf0f1;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            align-self: flex-start;
-        }
-
-        .password-card button:hover {
-            background-color: #3498db;
-        }
-
-        .profile {
-            cursor: pointer;
-        }
-
-        .profile a {
-            color: #ecf0f1; /* Warna putih */
-            text-decoration: none; /* Menghapus garis bawah */
-        }
-
-        .profile a:hover {
-            text-decoration: underline; /* Menambah garis bawah saat dihover */
-        }
-
-        .details-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .details-card {
-            width: 48%;
-        }
-
     </style>
 </head>
 <body>
@@ -223,16 +31,15 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="/home">
-            <div class="logo">
-                <img src="/static/logo.png" alt="Logo" width="65" height="79">
+                <div class="logo">
+                    <img src="/static/logo.png" alt="Logo" width="65" height="79">
+                </div>
             </a>
-            </div>
             <ul class="menu">
-                <li><a href="dashboard">DASHBOARD</a></li>
-                <li><a href="data">DATA WEB</a></li>
+                <li><a href="/dashboard">DASHBOARD</a></li>
+                <li><a href="/data">DATA WEB</a></li>
             </ul>
         </aside>
-
         <!-- Main content -->
         <main class="main-content">
             <!-- Navbar -->
@@ -246,49 +53,32 @@
                     </div>
                 </div>
             </nav>
-            
             <!-- Content -->
             <div class="content">
-                <div class="details-container">
-                    <div class="card details-card">
-                        <h2>Personal Details</h2>
-                        <label for="full-name">Full Name</label>
-                        <input type="text" id="full-name" name="full-name" value="Dylan Kaisar Hasya">
-                        <label for="organization-name">Organization Name</label>
-                        <input type="text" id="organization-name" name="organization-name" value="Mabes Polri">
-                        <label for="user-role">User Role</label>
-                        <input type="text" id="user-role" name="user-role" value="Monitoring Admin, Response Admin">
-                    </div>
-                    <div class="card details-card">
-                        <h2>Contact Details</h2>
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" value="dylankaisarh@gmail.com">
-                        <label for="contact-number">Contact Number</label>
-                        <input type="text" id="contact-number" name="contact-number" value="0308-2689-597">
-                    </div>
-                </div>
-                <div class="card password-card">
+                <div class="password-card">
                     <div class="icon">
                         <img src="/static/password.png" alt="Password Icon">
                         <h2>Password</h2>
                     </div>
                     <div class="form">
-                        <div class="input-group">
-                            <label for="current-password">Current Password</label>
-                            <input type="password" id="current-password" name="current-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('current-password')">👁️</button>
-                        </div>
-                        <div class="input-group">
-                            <label for="new-password">New Password</label>
-                            <input type="password" id="new-password" name="new-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('new-password')">👁️</button>
-                        </div>
-                        <div class="input-group">
-                            <label for="confirm-new-password">Confirm New Password</label>
-                            <input type="password" id="confirm-new-password" name="confirm-new-password" value="********">
-                            <button class="toggle-visibility" onclick="togglePasswordVisibility('confirm-new-password')">👁️</button>
-                        </div>
-                        <button>Update Password</button>
+                        <form action="/profile" method="POST">
+                            <div class="input-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="password" name="password" required>
+                                <button type="button" class="toggle-password" toggle="#password">Show</button>
+                            </div>
+                            <div class="input-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" name="new_password" required>
+                                <button type="button" class="toggle-password" toggle="#new-password">Show</button>
+                            </div>
+                            <div class="input-group">
+                                <label for="confirm-new-password">Confirm New Password</label>
+                                <input type="password" id="confirm-new-password" name="confirm_new_password" required>
+                                <button type="button" class="toggle-password" toggle="#confirm-new-password">Show</button>
+                            </div>
+                            <button type="submit">Update Password</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -296,14 +86,19 @@
     </div>
 
     <script>
-        function togglePasswordVisibility(id) {
-            const input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-            } else {
-                input.type = 'password';
-            }
-        }
+        // Functionality to show/hide password
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var toggle = document.querySelector(button.getAttribute('toggle'));
+                if (toggle.type === 'password') {
+                    toggle.type = 'text';
+                    button.textContent = 'Hide';
+                } else {
+                    toggle.type = 'password';
+                    button.textContent = 'Show';
+                }
+            });
+        });
     </script>
 </body>
 </html>

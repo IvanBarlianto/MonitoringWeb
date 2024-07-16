@@ -44,9 +44,8 @@ def b64encode_filter(data):
     return base64.b64encode(data).decode('utf-8')
 
 # Function to check SSL expiry date
-def check_ssl(url):
+def check_ssl(domain):
     try:
-        domain = url.split('//')[-1].split('/')[0]
         context = SSL.Context(SSL.TLSv1_2_METHOD)
         conn = SSL.Connection(context, socket.socket(socket.AF_INET))
         conn.connect((domain, 443))
@@ -138,18 +137,27 @@ def home():
 def check():
     data = request.json
     url = data.get('url')
+
+    # Add https:// if missing and store URL without the protocol
+    if not url.startswith('http://') and not url.startswith('https://'):
+        url = 'https://' + url
+
+    domain = url.split('//')[-1].split('/')[0]
+
     if not validators.url(url):
         return jsonify({'error': 'Invalid URL'}), 400
 
     try:
         response = make_http_request(url)
-        ssl_expiry = check_ssl(url)
+        ssl_expiry = check_ssl(domain)
         screenshot = capture_screenshot(url)
-        ping_public = f"{ping(url.split('//')[-1].split('/')[0]) * 1000:.2f} ms" if ping(url.split('//')[-1].split('/')[0]) else "No response"
+        
+        ping_time = ping(domain)
+        ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
         status = "ACTIVE" if response.status_code == 200 else "NON ACTIVE"
 
         # Check if the URL already exists in the database
-        existing_result = MonitoringResult.query.filter_by(url=url).first()
+        existing_result = MonitoringResult.query.filter_by(url=domain).first()
 
         if existing_result:
             # Update existing record
@@ -160,7 +168,7 @@ def check():
         else:
             # Save monitoring result to database
             result = MonitoringResult(
-                url=url,
+                url=domain,
                 ssl_expiry=ssl_expiry,
                 ping_public=ping_public,
                 status=status,
