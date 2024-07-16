@@ -17,7 +17,6 @@
             padding-top: 35px;
         }
 
-
         .sidebar ul li:nth-child(2) a {
             background-image: url('/static/monitoring.png');
             background-repeat: no-repeat;
@@ -28,11 +27,9 @@
             margin-top: 30px;
         }
 
-
         .sidebar ul li a {
             font-family: 'Poppins', sans-serif;
         }
-
 
         .sidebar ul li.active a {
             background-color: #2980b9;
@@ -45,7 +42,8 @@
             align-items: center;
         }
 
-        .profile,.logout {
+        .profile,
+        .logout {
             margin-left: 20px;
         }
 
@@ -68,9 +66,6 @@
             display: none;
             position: fixed;
             z-index: 1;
-            display: none;
-            position: fixed;
-            z-index: 1;
             left: 0;
             top: 0;
             width: 100%;
@@ -83,10 +78,8 @@
         .modal-content {
             background-color: #fefefe;
             margin: 15% auto;
-            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
             width: 80%;
             max-width: 500px;
             text-align: center;
@@ -148,6 +141,15 @@
 
         .recheckAll:hover {
             background-color: #2980b9;
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
         }
     </style>
 </head>
@@ -228,10 +230,12 @@
             <button onclick="closeLogoutModal()">Cancel</button>
         </div>
     </div>
+
     <!-- Loading Spinner -->
     <div class="loading" id="loading">
         <img src="/static/loading.gif" alt="Loading...">
     </div>
+
     <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8"
@@ -317,6 +321,7 @@
                 toggleLoading(false);
             });
         });
+
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }
