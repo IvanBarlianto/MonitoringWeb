@@ -7,8 +7,6 @@ import validators
 from OpenSSL import SSL
 import socket
 from ping3 import ping
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
 import time
 from datetime import datetime
 import base64
@@ -39,6 +37,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    role = db.Column(db.String(10), nullable=False, default='user')  # Add role field
 
 @app.template_filter('b64encode')
 def b64encode_filter(data):
@@ -122,8 +121,13 @@ def index():
 @app.route('/data')
 @login_required
 def data():
+    user = User.query.get(session['user_id'])
     results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-    return render_template('data.html', results=results)
+    
+    if user.role == 'admin':
+        return render_template('admin.html', results=results)
+    else:
+        return render_template('data.html', results=results)
 
 @app.route('/home')
 def home():
