@@ -41,7 +41,10 @@ class User(db.Model):
 
 @app.template_filter('b64encode')
 def b64encode_filter(data):
+    if data is None:
+        return ''
     return base64.b64encode(data).decode('utf-8')
+
 
 # Function to check SSL expiry date
 def check_ssl(domain):
@@ -56,7 +59,8 @@ def check_ssl(domain):
         return expiry_date.strftime('%Y-%m-%d')
     except Exception as e:
         logging.error(f"Error checking SSL: {e}")
-        return str(e)
+        return "-"  # Return "-" in case of error
+
 
 # Function to capture website screenshot
 def capture_screenshot(url):
@@ -81,7 +85,7 @@ def make_http_request(url):
         return response
     except requests.exceptions.RequestException as e:
         logging.error(f"Error making HTTP request: {e}")
-        raise Exception(f'Error making HTTP request: {str(e)}')
+        return None
 
 # Decorator to require login and prevent caching
 def login_required(f):
@@ -152,9 +156,19 @@ def check():
         ssl_expiry = check_ssl(domain)
         screenshot = capture_screenshot(url)
         
+        # Set a default value if screenshot is None
+        if screenshot is None:
+            screenshot = b''  # You can use an empty byte string as a default
+
         ping_time = ping(domain)
         ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
-        status = "ACTIVE" if response.status_code == 200 else "NON ACTIVE"
+        
+        # Initialize status
+        status = "ACTIVE" if response else "NON ACTIVE"
+        
+        # If response is None, set status to the error message
+        if response is None:
+            status = "NON ACTIVE"
 
         # Check if the URL already exists in the database
         existing_result = MonitoringResult.query.filter_by(url=domain).first()
@@ -185,6 +199,7 @@ def check():
             'status': status
         })
     except Exception as e:
+        logging.error(f"Unexpected error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/dashboard')
