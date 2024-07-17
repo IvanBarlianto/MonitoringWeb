@@ -29,7 +29,7 @@ class MonitoringResult(db.Model):
     ssl_expiry = db.Column(db.String(64), nullable=False)
     ping_public = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(64), nullable=False)
-    screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=False)  # LONGBLOB
+    screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=True)  # LONGBLOB
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Define the User model for authentication
