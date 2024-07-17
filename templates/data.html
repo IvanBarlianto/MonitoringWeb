@@ -233,7 +233,8 @@
 
     <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js">
+    </script>
     <script>
         $(document).ready(function () {
             var resultTable = $('#resultsTable').DataTable({
@@ -242,10 +243,15 @@
                     "orderable": true,
                     "targets": 0
                 }],
-                "order": [[1, 'dsc']],
+                "order": [
+                    [1, 'dsc']
+                ],
                 "drawCallback": function (settings) {
                     var api = this.api();
-                    api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    api.column(0, {
+                        search: 'applied',
+                        order: 'applied'
+                    }).nodes().each(function (cell, i) {
                         cell.innerHTML = i + 1;
                     });
                 }
@@ -267,8 +273,12 @@
                 try {
                     const response = await fetch('/check', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url })
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            url
+                        })
                     });
 
                     const data = await response.json();
@@ -305,8 +315,12 @@
                     try {
                         const response = await fetch('/check', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url })
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                url
+                            })
                         });
 
                         const data = await response.json();
@@ -314,15 +328,25 @@
                             throw new Error(data.error || 'An unknown error occurred');
                         }
 
-                        table.cell(i, 2).data(data.ssl_expiry);
-                        table.cell(i, 3).data(data.ping_public);
-                        table.cell(i, 4).data(data.status);
-                        table.cell(i, 5).data(`<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`);
+                        // Find the row index based on URL
+                        const rowIndex = table.rows().indexes().filter(function (idx) {
+                            return table.cell(idx, 1).data() === url;
+                        });
+
+                        if (rowIndex.length > 0) {
+                            // Update relevant cells in the DataTable based on URL
+                            table.cell(rowIndex[0], 2).data(data.ssl_expiry);
+                            table.cell(rowIndex[0], 3).data(data.ping_public);
+                            table.cell(rowIndex[0], 4).data(data.status);
+                            table.cell(rowIndex[0], 5).data(
+                                `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
+                            );
+                        }
                     } catch (error) {
                         console.error(`Error re-checking URL ${url}: ${error.message}`);
                     }
                 }
-                table.draw();
+                table.draw(); // Redraw the DataTable to reflect changes
                 toggleLoading(false);
             });
         });

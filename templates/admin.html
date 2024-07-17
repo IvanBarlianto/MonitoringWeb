@@ -336,11 +336,10 @@
             $('#recheckAll').on('click', async function () {
                 toggleLoading(true);
                 const table = $('#resultsTable').DataTable();
-                const rows = table.rows().data(); // Get all rows data
+                const rows = table.rows().data();
 
-                // Loop through each row
                 for (let i = 0; i < rows.length; i++) {
-                    const url = rows[i][1]; // Assuming URL is in the second column
+                    const url = rows[i][1];
                     try {
                         const response = await fetch('/check', {
                             method: 'POST',
@@ -357,19 +356,25 @@
                             throw new Error(data.error || 'An unknown error occurred');
                         }
 
-                        // Update the table with new data
-                        table.cell(i, 2).data(data.ssl_expiry); // Update SSL Expiry column
-                        table.cell(i, 3).data(data.ping_public); // Update Ping Public column
-                        table.cell(i, 4).data(data.status); // Update Status column
-                        table.cell(i, 5).data(
-                            `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
-                            ); // Update Screenshot column
+                        // Find the row index based on URL
+                        const rowIndex = table.rows().indexes().filter(function (idx) {
+                            return table.cell(idx, 1).data() === url;
+                        });
+
+                        if (rowIndex.length > 0) {
+                            // Update relevant cells in the DataTable based on URL
+                            table.cell(rowIndex[0], 2).data(data.ssl_expiry);
+                            table.cell(rowIndex[0], 3).data(data.ping_public);
+                            table.cell(rowIndex[0], 4).data(data.status);
+                            table.cell(rowIndex[0], 5).data(
+                                `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
+                            );
+                        }
                     } catch (error) {
-                        console.error('Error re-checking URL:', error.message);
-                        alert('Error: ' + error.message);
+                        console.error(`Error re-checking URL ${url}: ${error.message}`);
                     }
                 }
-                table.draw(); // Redraw the updated table
+                table.draw(); // Redraw the DataTable to reflect changes
                 toggleLoading(false);
             });
         });
