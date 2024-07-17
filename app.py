@@ -197,10 +197,10 @@ def dashboard():
 
     return render_template('dashboard.html', web_active=web_active, web_non_active=web_non_active, total_web=total_web, results=results)
 
-@app.route('/profile')
-@login_required
-def profile():
-    return render_template('profile.html')
+# @app.route('/profile')
+# @login_required
+# def profile():
+#     return render_template('profile.html')
 
 @app.route('/logout')
 @login_required
