@@ -200,3 +200,7 @@ th {
     width: 100px;
     height: 100px;
 }
+
+#resultsTable tbody td:nth-child(1), #resultsTable tbody td:nth-child(7) {
+    text-align: center; /* Center align the "No" column */
+}
