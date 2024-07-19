@@ -184,6 +184,7 @@
                         <button type="submit">Check</button>
                     </form>
                     <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
+                    <div id="lastCheck" class="lastCheck"></div>
                 </div>
             </div>
             <div class="result" id="result">
@@ -264,6 +265,13 @@
                 } else {
                     loadingElement.style.display = 'none';
                 }
+            }
+
+            function updateLastCheck() {
+                const lastCheckElement = document.getElementById('lastCheck');
+                const now = new Date();
+                const formattedDate = now.toLocaleString();
+                lastCheckElement.innerHTML = `Last Check: ${formattedDate}`;
             }
 
             document.getElementById('monitorForm').addEventListener('submit', async function (e) {
@@ -350,6 +358,7 @@
                 toggleLoading(false);
             });
         });
+        
 
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
