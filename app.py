@@ -232,6 +232,76 @@ def delete_entry(id):
         return jsonify({'message': 'Entry deleted successfully'}), 200
     return jsonify({'error': 'Entry not found'}), 404
 
+@app.route('/recheck_all', methods=['POST'])
+@login_required
+def recheck_all():
+    try:
+        results = MonitoringResult.query.all()
+        for result in results:
+            response = make_http_request('https://' + result.url)
+            ssl_expiry = check_ssl(result.url)
+            screenshot = capture_screenshot('https://' + result.url)
+            
+            if screenshot is None:
+                screenshot = b''
+
+            ping_time = ping(result.url)
+            ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+            status = "ACTIVE" if response else "NON ACTIVE"
+            
+            if response is None:
+                status = "NON ACTIVE"
+
+            result.ssl_expiry = ssl_expiry
+            result.ping_public = ping_public
+            result.status = status
+            result.screenshot = screenshot
+
+        db.session.commit()
+        return jsonify({'message': 'Rechecked all URLs successfully'}), 200
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/recheck_selected', methods=['POST'])
+@login_required
+def recheck_selected():
+    data = request.json
+    urls = data.get('urls', [])
+    
+    if not urls:
+        return jsonify({'error': 'No URLs provided'}), 400
+    
+    try:
+        for url in urls:
+            result = MonitoringResult.query.filter_by(url=url).first()
+            if result:
+                response = make_http_request('https://' + result.url)
+                ssl_expiry = check_ssl(result.url)
+                screenshot = capture_screenshot('https://' + result.url)
+                
+                if screenshot is None:
+                    screenshot = b''
+
+                ping_time = ping(result.url)
+                ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+                status = "ACTIVE" if response else "NON ACTIVE"
+                
+                if response is None:
+                    status = "NON ACTIVE"
+
+                result.ssl_expiry = ssl_expiry
+                result.ping_public = ping_public
+                result.status = status
+                result.screenshot = screenshot
+
+        db.session.commit()
+        return jsonify({'message': 'Rechecked selected URLs successfully'}), 200
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # Create tables if they do not exist
 with app.app_context():
     db.create_all()

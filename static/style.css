@@ -204,8 +204,3 @@ th {
 #resultsTable tbody td:nth-child(1), #resultsTable tbody td:nth-child(7) {
     text-align: center; /* Center align the "No" column */
 }
-
-.lastCheck{
-    padding-top: 25px; 
-    font-size: 12px; 
-}
