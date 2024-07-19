@@ -119,18 +119,7 @@
         }
 
         .yes-logout {
-            color: #000000;
-        }
-
-        .delete-btn{
-            font-family: 'Poppins', sans-serif;
-            background-color: #f01414;
-            color: #ecf0f1;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            color: #ff0000;
         }
 
         .recheckAll {
@@ -156,6 +145,16 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1000;
+        }
+
+        .delete-btn{
+            font-family: 'Poppins', sans-serif;
+            background-color: #e41414;
+            color: #ecf0f1;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -195,12 +194,15 @@
                         <button type="submit">Check</button>
                     </form>
                     <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
+                    <button id="recheckSelected" class="recheckAll">Re-check Selected URLs</button>
+                    <div id="lastCheck" class="lastCheck"></div>
                 </div>
             </div>
             <div class="result" id="result">
                 <table id="resultsTable" class="display">
                     <thead>
                         <tr>
+                            <th>Select</th>
                             <th>No</th>
                             <th>URL</th>
                             <th>SSL Expiry</th>
@@ -213,6 +215,7 @@
                     <tbody>
                         {% for result in results %}
                         <tr>
+                            <td><input type="checkbox" class="select-row"></td>
                             <td></td>
                             <td>{{ result.url }}</td>
                             <td>{{ result.ssl_expiry }}</td>
@@ -221,13 +224,11 @@
                             <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}"
                                     alt="Screenshot of {{ result.url }}" width="200"></td>
                             <td><button class="delete-btn" data-id="{{ result.id }}">Delete</button></td>
-                            <!-- Add this button -->
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
         </main>
     </div>
 
@@ -240,11 +241,13 @@
             <button onclick="closeLogoutModal()">Cancel</button>
         </div>
     </div>
+
     <!-- Loading Spinner -->
     <div class="loading" id="loading">
         <img src="/static/loading.gif" alt="Loading...">
     </div>
 
+    <!-- Include jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.js">
     </script>
@@ -254,14 +257,14 @@
                 "columnDefs": [{
                     "searchable": false,
                     "orderable": true,
-                    "targets": 0
+                    "targets": 1
                 }],
                 "order": [
-                    [1, 'dsc']
+                    [2, 'dsc']
                 ],
                 "drawCallback": function (settings) {
                     var api = this.api();
-                    api.column(0, {
+                    api.column(1, {
                         search: 'applied',
                         order: 'applied'
                     }).nodes().each(function (cell, i) {
@@ -277,6 +280,13 @@
                 } else {
                     loadingElement.style.display = 'none';
                 }
+            }
+
+            function updateLastCheck() {
+                const lastCheckElement = document.getElementById('lastCheck');
+                const now = new Date();
+                const formattedDate = now.toLocaleString();
+                lastCheckElement.innerHTML = `Last Check: ${formattedDate}`;
             }
 
             // Submit monitorForm to check URL
@@ -316,6 +326,7 @@
                     alert('Error: ' + error.message);
                 } finally {
                     toggleLoading(false);
+                    updateLastCheck();
                 }
             });
 
@@ -343,50 +354,55 @@
                 }
             });
 
-            // Re-check all URLs button click event
-            $('#recheckAll').on('click', async function () {
+            document.getElementById('recheckAll').addEventListener('click', async function () {
                 toggleLoading(true);
-                const table = $('#resultsTable').DataTable();
-                const rows = table.rows().data();
+                try {
+                    const response = await fetch('/recheck_all', {
+                        method: 'POST',
+                    });
 
-                for (let i = 0; i < rows.length; i++) {
-                    const url = rows[i][1];
-                    try {
-                        const response = await fetch('/check', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                url
-                            })
-                        });
-
-                        const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(data.error || 'An unknown error occurred');
-                        }
-
-                        // Find the row index based on URL
-                        const rowIndex = table.rows().indexes().filter(function (idx) {
-                            return table.cell(idx, 1).data() === url;
-                        });
-
-                        if (rowIndex.length > 0) {
-                            // Update relevant cells in the DataTable based on URL
-                            table.cell(rowIndex[0], 2).data(data.ssl_expiry);
-                            table.cell(rowIndex[0], 3).data(data.ping_public);
-                            table.cell(rowIndex[0], 4).data(data.status);
-                            table.cell(rowIndex[0], 5).data(
-                                `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`
-                            );
-                        }
-                    } catch (error) {
-                        console.error(`Error re-checking URL ${url}: ${error.message}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
+
+                    const data = await response.json();
+                    console.log(data);
+                    location.reload();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                } finally {
+                    toggleLoading(false);
                 }
-                table.draw(); // Redraw the DataTable to reflect changes
-                toggleLoading(false);
+            });
+
+            document.getElementById('recheckSelected').addEventListener('click', async function () {
+                toggleLoading(true);
+                const selectedRows = document.querySelectorAll('.select-row:checked');
+                const urls = Array.from(selectedRows).map(row => row.closest('tr').querySelector('td:nth-child(3)').textContent);
+                console.log(urls);
+                try {
+                    const response = await fetch('/recheck_selected', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ urls }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+                    console.log(data);
+                    location.reload();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                } finally {
+                    toggleLoading(false);
+                }
             });
         });
 
@@ -399,7 +415,15 @@
         }
 
         function logout() {
+            // Logic to handle logout can go here, for example, form submission or AJAX request
+            // For now, we will just simulate a logout
             window.location.href = '/logout';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
+            }
         }
     </script>
 </body>
