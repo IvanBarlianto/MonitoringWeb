@@ -365,20 +365,15 @@
             document.getElementById('logoutModal').style.display = 'none';
         }
 
-        async function logout() {
-            try {
-                const response = await fetch('/logout', {
-                    method: 'POST',
-                });
+        function logout() {
+            // Logic to handle logout can go here, for example, form submission or AJAX request
+            // For now, we will just simulate a logout
+            window.location.href = '/logout';
+        }
 
-                if (response.ok) {
-                    window.location.href = '/login';
-                } else {
-                    alert('Failed to logout');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
             }
         }
     </script>
