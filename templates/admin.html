@@ -122,7 +122,7 @@
             color: #000000;
         }
 
-        .delete-btn{
+        .delete-btn {
             font-family: 'Poppins', sans-serif;
             background-color: #f01414;
             color: #ecf0f1;
@@ -195,6 +195,7 @@
                         <button type="submit">Check</button>
                     </form>
                     <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
+                    <div class="lastCheck"></div>
                 </div>
             </div>
             <div class="result" id="result">
@@ -279,6 +280,13 @@
                 }
             }
 
+            function updateLastCheck() {
+                const lastCheckElement = document.getElementById('lastCheck');
+                const now = new Date();
+                const formattedDate = now.toLocaleString();
+                lastCheckElement.innerHTML = `Last Check: ${formattedDate}`;
+            }
+
             // Submit monitorForm to check URL
             document.getElementById('monitorForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
@@ -316,6 +324,7 @@
                     alert('Error: ' + error.message);
                 } finally {
                     toggleLoading(false);
+                    updateLastCheck();
                 }
             });
 
@@ -387,6 +396,7 @@
                 }
                 table.draw(); // Redraw the DataTable to reflect changes
                 toggleLoading(false);
+                updateLastCheck();
             });
         });
 
