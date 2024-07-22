@@ -158,7 +158,7 @@ def check():
         
         # Set a default value if screenshot is None
         if screenshot is None:
-            screenshot = b''  # You can use an empty byte string as a default
+            screenshot = b'-'  # You can use an empty byte string as a default
 
         ping_time = ping(domain)
         ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
