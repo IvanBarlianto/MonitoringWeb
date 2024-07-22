@@ -185,6 +185,7 @@
                     </form>
                     <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
                     <button id="recheckSelected" class="recheckAll">Re-check Selected URLs</button>
+                    <div id="lastCheck" class="lastCheck"></div>
                 </div>
             </div>
             <div class="result" id="result">
@@ -222,7 +223,7 @@
     <div id="logoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLogoutModal()">&times;</span>
-            <h2>Logout</h2>
+            <h2>Confirm Logout</h2>
             <p>Are you sure you want to logout?</p>
             <button class="yes-logout" onclick="logout()">Yes, Logout</button>
             <button onclick="closeLogoutModal()">Cancel</button>
@@ -267,6 +268,13 @@
                 } else {
                     loadingElement.style.display = 'none';
                 }
+            }
+
+            function updateLastCheck() {
+                const lastCheckElement = document.getElementById('lastCheck');
+                const now = new Date();
+                const formattedDate = now.toLocaleString();
+                lastCheckElement.innerHTML = `Last Check: ${formattedDate}`;
             }
 
             document.getElementById('monitorForm').addEventListener('submit', async function (e) {
@@ -348,7 +356,7 @@
                 }
             });
         });
-
+        
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }
@@ -357,20 +365,15 @@
             document.getElementById('logoutModal').style.display = 'none';
         }
 
-        async function logout() {
-            try {
-                const response = await fetch('/logout', {
-                    method: 'POST',
-                });
+        function logout() {
+            // Logic to handle logout can go here, for example, form submission or AJAX request
+            // For now, we will just simulate a logout
+            window.location.href = '/logout';
+        }
 
-                if (response.ok) {
-                    window.location.href = '/login';
-                } else {
-                    alert('Failed to logout');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('logoutModal')) {
+                closeLogoutModal();
             }
         }
     </script>
