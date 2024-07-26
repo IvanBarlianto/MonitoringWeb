@@ -185,7 +185,6 @@
                     </form>
                     <button id="recheckAll" class="recheckAll">Re-check All URLs</button>
                     <button id="recheckSelected" class="recheckAll">Re-check Selected URLs</button>
-                    <div id="lastCheck" class="lastCheck"></div>
                 </div>
             </div>
             <div class="result" id="result">
@@ -210,8 +209,13 @@
                             <td>{{ result.ssl_expiry }}</td>
                             <td>{{ result.ping_public }}</td>
                             <td>{{ result.status }}</td>
-                            <td><img src="data:image/png;base64,{{ result.screenshot|b64encode }}"
-                                    alt="Screenshot of {{ result.url }}" width="200"></td>
+                            <td>
+                                {% if result.screenshot %}
+                                <img src="data:image/png;base64,{{ result.screenshot|b64encode }}" alt="Screenshot of {{ result.url }}" width="200">
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -268,13 +272,6 @@
                 } else {
                     loadingElement.style.display = 'none';
                 }
-            }
-
-            function updateLastCheck() {
-                const lastCheckElement = document.getElementById('lastCheck');
-                const now = new Date();
-                const formattedDate = now.toLocaleString();
-                lastCheckElement.innerHTML = `Last Check: ${formattedDate}`;
             }
 
             document.getElementById('monitorForm').addEventListener('submit', async function (e) {
