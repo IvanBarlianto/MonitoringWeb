@@ -31,7 +31,7 @@ class MonitoringResult(db.Model):
     url = db.Column(db.String(256), nullable=False)
     ssl_expiry = db.Column(db.String(64), nullable=False)
     ping_public = db.Column(db.String(64), nullable=False)
-    ping_local = db.Column(db.String(64), nullable=False)  # New field for local ping
+    ping_local = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(64), nullable=False)
     screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=True)  # LONGBLOB
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -100,6 +100,19 @@ def local_ping(host):
         return "Unable to parse ping output"
     except subprocess.CalledProcessError:
         return "No response"
+
+# Function to perform public ping
+def ping_public(domain):
+    try:
+        response = requests.get(f'https://api.hostinger.com/v1/ping?host={domain}')
+        if response.status_code == 200:
+            data = response.json()
+            ping_time = data['avgResponseTime']
+            return f"{ping_time:.2f} ms" if ping_time else "No response"
+        return "No response"
+    except Exception as e:
+        logging.error(f"Error performing public ping: {e}")
+        return "Error"
 
 # Decorator to require login and prevent caching
 def login_required(f):
@@ -175,8 +188,11 @@ def check():
             screenshot = b'-'  # You can use an empty byte string as a default
 
         ping_time = ping(domain)
-        ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+        ping_public_time = ping_public(domain)
         ping_local = local_ping(domain)
+        
+        ping_public = f"{ping_public_time}" if ping_public_time else "No response"
+        ping_local = f"{ping_local}" if ping_local else "No response"
         
         # Initialize status
         status = "ACTIVE" if response else "NON ACTIVE"
@@ -259,8 +275,12 @@ def recheck_all():
                 screenshot = b''
 
             ping_time = ping(result.url)
-            ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+            ping_public_time = ping_public(result.url)
             ping_local = local_ping(result.url)
+            
+            ping_public = f"{ping_public_time}" if ping_public_time else "No response"
+            ping_local = f"{ping_local}" if ping_local else "No response"
+            
             status = "ACTIVE" if response else "NON ACTIVE"
             
             if response is None:
@@ -299,8 +319,12 @@ def recheck_selected():
                     screenshot = b''
 
                 ping_time = ping(result.url)
-                ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+                ping_public_time = ping_public(result.url)
                 ping_local = local_ping(result.url)
+                
+                ping_public = f"{ping_public_time}" if ping_public_time else "No response"
+                ping_local = f"{ping_local}" if ping_local else "No response"
+                
                 status = "ACTIVE" if response else "NON ACTIVE"
                 
                 if response is None:
