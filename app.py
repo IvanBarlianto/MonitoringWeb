@@ -13,7 +13,6 @@ from datetime import datetime
 import base64
 import logging
 from functools import wraps
-import subprocess
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -71,7 +70,7 @@ def capture_screenshot(url):
         options.add_argument('headless')
         driver = webdriver.Chrome(service=Service("C:/chromedriver-win64/chromedriver.exe"), options=options)
         driver.get(url)
-        time.sleep(2)  # Reduce sleep time to 2 seconds
+        time.sleep(2)  # Wait for the page to load
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
@@ -92,25 +91,26 @@ def make_http_request(url):
 # Function to perform local ping
 def local_ping(host):
     try:
-        output = subprocess.check_output(["ping", "-n", "4", host], universal_newlines=True)
-        lines = output.strip().split('\n')
-        for line in lines:
-            if "Average" in line:
-                return line.split('=')[-1].strip()
-        return "Unable to parse ping output"
-    except subprocess.CalledProcessError:
+        ping_time = ping(host, timeout=4)
+        if ping_time is not None:
+            return f"{ping_time * 1000:.2f} ms"  # Convert seconds to milliseconds
         return "No response"
+    except Exception as e:
+        logging.error(f"Error performing local ping: {e}")
+        return "Error"
 
 # Function to perform public ping
 def ping_public(domain):
     try:
-        response = requests.get(f'https://api.hostinger.com/v1/ping?host={domain}')
+        # Measure the response time from the public URL
+        start_time = time.time()
+        response = requests.get(f'http://{domain}', timeout=30)
+        elapsed_time = time.time() - start_time
+        
         if response.status_code == 200:
-            data = response.json()
-            ping_time = data['avgResponseTime']
-            return f"{ping_time:.2f} ms" if ping_time else "No response"
+            return f"{elapsed_time * 1000:.2f} ms"  # Convert seconds to milliseconds
         return "No response"
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         logging.error(f"Error performing public ping: {e}")
         return "Error"
 
@@ -130,21 +130,18 @@ def login_required(f):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))  # Redirect to dashboard if user is already logged in
+        return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        
-        # Query the database for the user
         user = User.query.filter_by(email=email, password=password).first()
 
         if user:
-            # If user exists, store user data in session
             session['user_id'] = user.id
-            return redirect(url_for('dashboard'))  # Redirect to dashboard page after successful login
+            return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', error='Invalid credentials')  # Show error message for invalid credentials
+            return render_template('login.html', error='Invalid credentials')
 
     return render_template('login.html')
 
@@ -153,7 +150,7 @@ def index():
 def data():
     user = User.query.get(session['user_id'])
     results = MonitoringResult.query.order_by(MonitoringResult.id.asc()).all()
-    
+
     if user.role == 'admin':
         return render_template('admin.html', results=results)
     else:
@@ -169,7 +166,6 @@ def check():
     data = request.json
     url = data.get('url')
 
-    # Add https:// if missing and store URL without the protocol
     if not url.startswith('http://') and not url.startswith('https://'):
         url = 'https://' + url
 
@@ -183,43 +179,30 @@ def check():
         ssl_expiry = check_ssl(domain)
         screenshot = capture_screenshot(url)
         
-        # Set a default value if screenshot is None
         if screenshot is None:
-            screenshot = b'-'  # You can use an empty byte string as a default
+            screenshot = b''  # Use empty byte string as default
 
-        ping_time = ping(domain)
+        ping_time = local_ping(domain)
         ping_public_time = ping_public(domain)
-        ping_local = local_ping(domain)
         
-        ping_public = f"{ping_public_time}" if ping_public_time else "No response"
-        ping_local = f"{ping_local}" if ping_local else "No response"
-        
-        # Initialize status
         status = "ACTIVE" if response else "NON ACTIVE"
-        
-        # If response is None, set status to the error message
-        if response is None:
-            status = "NON ACTIVE"
 
-        # Check if the URL already exists in the database
         existing_result = MonitoringResult.query.filter_by(url=domain).first()
 
         if existing_result:
-            # Update existing record
             existing_result.ssl_expiry = ssl_expiry
-            existing_result.ping_public = ping_public
-            existing_result.ping_local = ping_local
+            existing_result.ping_public = ping_public_time
+            existing_result.ping_local = ping_time
             existing_result.status = status
             existing_result.screenshot = screenshot
         else:
-            # Save monitoring result to database
             result = MonitoringResult(
                 url=domain,
                 ssl_expiry=ssl_expiry,
-                ping_public=ping_public,
-                ping_local=ping_local,
+                ping_public=ping_public_time,
+                ping_local=ping_time,
                 status=status,
-                screenshot=screenshot  # Save raw screenshot data as BLOB
+                screenshot=screenshot
             )
             db.session.add(result)
 
@@ -228,8 +211,8 @@ def check():
         return jsonify({
             'ssl_expiry': ssl_expiry,
             'screenshot': base64.b64encode(screenshot).decode('utf-8'),
-            'ping_public': ping_public,
-            'ping_local': ping_local,
+            'ping_public': ping_public_time,
+            'ping_local': ping_time,
             'status': status
         })
     except Exception as e:
@@ -267,28 +250,22 @@ def recheck_all():
     try:
         results = MonitoringResult.query.all()
         for result in results:
-            response = make_http_request('https://' + result.url)
+            url = 'https://' + result.url
+            response = make_http_request(url)
             ssl_expiry = check_ssl(result.url)
-            screenshot = capture_screenshot('https://' + result.url)
+            screenshot = capture_screenshot(url)
             
             if screenshot is None:
                 screenshot = b''
 
-            ping_time = ping(result.url)
+            ping_time = local_ping(result.url)
             ping_public_time = ping_public(result.url)
-            ping_local = local_ping(result.url)
-            
-            ping_public = f"{ping_public_time}" if ping_public_time else "No response"
-            ping_local = f"{ping_local}" if ping_local else "No response"
             
             status = "ACTIVE" if response else "NON ACTIVE"
-            
-            if response is None:
-                status = "NON ACTIVE"
 
             result.ssl_expiry = ssl_expiry
-            result.ping_public = ping_public
-            result.ping_local = ping_local
+            result.ping_public = ping_public_time
+            result.ping_local = ping_time
             result.status = status
             result.screenshot = screenshot
 
@@ -311,28 +288,22 @@ def recheck_selected():
         for url in urls:
             result = MonitoringResult.query.filter_by(url=url).first()
             if result:
-                response = make_http_request('https://' + result.url)
+                url = 'https://' + result.url
+                response = make_http_request(url)
                 ssl_expiry = check_ssl(result.url)
-                screenshot = capture_screenshot('https://' + result.url)
+                screenshot = capture_screenshot(url)
                 
                 if screenshot is None:
                     screenshot = b''
 
-                ping_time = ping(result.url)
+                ping_time = local_ping(result.url)
                 ping_public_time = ping_public(result.url)
-                ping_local = local_ping(result.url)
-                
-                ping_public = f"{ping_public_time}" if ping_public_time else "No response"
-                ping_local = f"{ping_local}" if ping_local else "No response"
                 
                 status = "ACTIVE" if response else "NON ACTIVE"
-                
-                if response is None:
-                    status = "NON ACTIVE"
 
                 result.ssl_expiry = ssl_expiry
-                result.ping_public = ping_public
-                result.ping_local = ping_local
+                result.ping_public = ping_public_time
+                result.ping_local = ping_time
                 result.status = status
                 result.screenshot = screenshot
 
