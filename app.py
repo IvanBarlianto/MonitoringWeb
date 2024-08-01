@@ -12,6 +12,9 @@ from datetime import datetime
 import base64
 import logging
 from functools import wraps
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
