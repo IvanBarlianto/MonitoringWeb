@@ -90,15 +90,22 @@ def capture_screenshot(url):
     try:
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
+        options.add_argument('ignore-certificate-errors')  # Ignore SSL certificate errors
+        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+        
         driver = webdriver.Chrome(service=Service("C:/chromedriver-win64/chromedriver.exe"), options=options)
         driver.get(url)
-        time.sleep(2)  # Reduce sleep time to 2 seconds
+        
+        # Wait for a specific element to load
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
     except Exception as e:
         logging.error(f"Error capturing screenshot: {e}")
         return None
+
 
 # Function to make HTTP request
 def make_http_request(url):
