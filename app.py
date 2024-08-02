@@ -190,8 +190,8 @@ def check():
         screenshot = capture_screenshot(url)
         
         # Set a default value if screenshot is None
-        if screenshot is None:
-            screenshot = b'-'  # You can use an empty byte string as a default
+        if screenshot == b'-':
+            screenshot = b'-'  
 
         # Perform ping operations
         ping_local_result = ping_local(domain)
@@ -279,7 +279,7 @@ def recheck_all():
             ssl_expiry = check_ssl(result.url)
             screenshot = capture_screenshot('https://' + result.url)
             
-            if screenshot is None:
+            if screenshot == b'-':
                 screenshot = b'-'
 
             # Perform ping operations
@@ -321,7 +321,7 @@ def recheck_selected():
                 ssl_expiry = check_ssl(result.url)
                 screenshot = capture_screenshot('https://' + result.url)
                 
-                if screenshot is None:
+                if screenshot == b'-':
                     screenshot = b'-'
 
                 # Perform ping operations
