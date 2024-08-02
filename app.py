@@ -15,6 +15,8 @@ from functools import wraps
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from flask_apscheduler import APScheduler
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,6 +26,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
 db = SQLAlchemy(app)
+
+class Config:
+    SCHEDULER_API_ENABLED = True
+
+app.config.from_object(Config())
+
+scheduler = APScheduler()
+scheduler.init_app(app)
 
 # Define the MonitoringResult model
 class MonitoringResult(db.Model):
@@ -132,6 +142,42 @@ def login_required(f):
         response.headers['Expires'] = '0'
         return response
     return decorated_function
+
+# Job to run recheck_all once a day
+@scheduler.task('cron', id='recheck_all_job', hour=11, minute=17)
+def scheduled_recheck_all():
+    with app.app_context():
+        try:
+            results = MonitoringResult.query.all()
+            for result in results:
+                response = make_http_request('https://' + result.url)
+                ssl_expiry = check_ssl(result.url)
+                screenshot = capture_screenshot('https://' + result.url)
+                
+                if screenshot == b'-':
+                    screenshot = b'-'
+
+                ping_local_result = ping_local(result.url)
+                ping_public_result = ping_public(result.url)
+
+                status = "ACTIVE" if response else "NON ACTIVE"
+                
+                if response is None:
+                    status = "NON ACTIVE"
+
+                result.ssl_expiry = ssl_expiry
+                result.ping_local = ping_local_result
+                result.ping_public = ping_public_result
+                result.status = status
+                result.screenshot = screenshot
+
+            db.session.commit()
+            logging.info(f"Recheck all completed at {datetime.utcnow()}")
+        except Exception as e:
+            logging.error(f"Unexpected error during scheduled recheck_all: {e}")
+
+# Start the scheduler
+scheduler.start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
