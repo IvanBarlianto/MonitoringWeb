@@ -144,7 +144,7 @@ def login_required(f):
     return decorated_function
 
 # Job to run recheck_all once a day
-@scheduler.task('cron', id='recheck_all_job', hour=11, minute=17)
+@scheduler.task('cron', id='recheck_all_job', hour=0, minute=00)
 def scheduled_recheck_all():
     with app.app_context():
         try:
