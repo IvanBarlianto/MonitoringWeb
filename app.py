@@ -12,6 +12,11 @@ from datetime import datetime
 import base64
 import logging
 from functools import wraps
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from flask_apscheduler import APScheduler
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -22,11 +27,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'mAbes_pOlri'  # Secret key for session management
 db = SQLAlchemy(app)
 
+class Config:
+    SCHEDULER_API_ENABLED = True
+
+app.config.from_object(Config())
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+
 # Define the MonitoringResult model
 class MonitoringResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(256), nullable=False)
     ssl_expiry = db.Column(db.String(64), nullable=False)
+    ping_local = db.Column(db.String(64), nullable=False)
     ping_public = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(64), nullable=False)
     screenshot = db.Column(db.LargeBinary(length=(2**32)-1), nullable=True)  # LONGBLOB
@@ -45,6 +59,28 @@ def b64encode_filter(data):
         return ''
     return base64.b64encode(data).decode('utf-8')
 
+# Function to perform local ping
+def ping_local(domain):
+    try:
+        ping_time = ping(domain)
+        return f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+    except Exception as e:
+        logging.error(f"Error performing local ping: {e}")
+        return "Error"
+
+def ping_public(domain):
+    try:
+        # Measure the response time from the public URL
+        start_time = time.time()
+        response = requests.get(f'http://{domain}', timeout=30)
+        elapsed_time = time.time() - start_time
+        
+        if response.status_code == 200:
+            return f"{elapsed_time * 1000:.2f} ms"  # Convert seconds to milliseconds
+        return "No response"
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error performing public ping: {e}")
+        return "Error"
 
 # Function to check SSL expiry date
 def check_ssl(domain):
@@ -67,15 +103,22 @@ def capture_screenshot(url):
     try:
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
+        options.add_argument('ignore-certificate-errors')  # Ignore SSL certificate errors
+        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+        
         driver = webdriver.Chrome(service=Service("C:/chromedriver-win64/chromedriver.exe"), options=options)
         driver.get(url)
-        time.sleep(2)  # Reduce sleep time to 2 seconds
+        
+        # Wait for a specific element to load
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        
         screenshot_data = driver.get_screenshot_as_png()
         driver.quit()
         return screenshot_data
     except Exception as e:
         logging.error(f"Error capturing screenshot: {e}")
         return None
+
 
 # Function to make HTTP request
 def make_http_request(url):
@@ -99,6 +142,42 @@ def login_required(f):
         response.headers['Expires'] = '0'
         return response
     return decorated_function
+
+# Job to run recheck_all once a day
+@scheduler.task('cron', id='recheck_all_job', hour=0, minute=00)
+def scheduled_recheck_all():
+    with app.app_context():
+        try:
+            results = MonitoringResult.query.all()
+            for result in results:
+                response = make_http_request('https://' + result.url)
+                ssl_expiry = check_ssl(result.url)
+                screenshot = capture_screenshot('https://' + result.url)
+                
+                if screenshot == b'-':
+                    screenshot = b'-'
+
+                ping_local_result = ping_local(result.url)
+                ping_public_result = ping_public(result.url)
+
+                status = "ACTIVE" if response else "NON ACTIVE"
+                
+                if response is None:
+                    status = "NON ACTIVE"
+
+                result.ssl_expiry = ssl_expiry
+                result.ping_local = ping_local_result
+                result.ping_public = ping_public_result
+                result.status = status
+                result.screenshot = screenshot
+
+            db.session.commit()
+            logging.info(f"Recheck all completed at {datetime.utcnow()}")
+        except Exception as e:
+            logging.error(f"Unexpected error during scheduled recheck_all: {e}")
+
+# Start the scheduler
+scheduler.start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -157,11 +236,12 @@ def check():
         screenshot = capture_screenshot(url)
         
         # Set a default value if screenshot is None
-        if screenshot is None:
-            screenshot = b''  # You can use an empty byte string as a default
+        if screenshot == b'-':
+            screenshot = b'-'  
 
-        ping_time = ping(domain)
-        ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+        # Perform ping operations
+        ping_local_result = ping_local(domain)
+        ping_public_result = ping_public(domain)
         
         # Initialize status
         status = "ACTIVE" if response else "NON ACTIVE"
@@ -176,7 +256,8 @@ def check():
         if existing_result:
             # Update existing record
             existing_result.ssl_expiry = ssl_expiry
-            existing_result.ping_public = ping_public
+            existing_result.ping_local = ping_local_result
+            existing_result.ping_public = ping_public_result
             existing_result.status = status
             existing_result.screenshot = screenshot
         else:
@@ -184,7 +265,8 @@ def check():
             result = MonitoringResult(
                 url=domain,
                 ssl_expiry=ssl_expiry,
-                ping_public=ping_public,
+                ping_local=ping_local_result,
+                ping_public=ping_public_result,
                 status=status,
                 screenshot=screenshot  # Save raw screenshot data as BLOB
             )
@@ -195,7 +277,8 @@ def check():
         return jsonify({
             'ssl_expiry': ssl_expiry,
             'screenshot': base64.b64encode(screenshot).decode('utf-8'),
-            'ping_public': ping_public,
+            'ping_local': ping_local_result,
+            'ping_public': ping_public_result,
             'status': status
         })
     except Exception as e:
@@ -242,18 +325,21 @@ def recheck_all():
             ssl_expiry = check_ssl(result.url)
             screenshot = capture_screenshot('https://' + result.url)
             
-            if screenshot is None:
-                screenshot = b''
+            if screenshot == b'-':
+                screenshot = b'-'
 
-            ping_time = ping(result.url)
-            ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+            # Perform ping operations
+            ping_local_result = ping_local(result.url)
+            ping_public_result = ping_public(result.url)
+
             status = "ACTIVE" if response else "NON ACTIVE"
             
             if response is None:
                 status = "NON ACTIVE"
 
             result.ssl_expiry = ssl_expiry
-            result.ping_public = ping_public
+            result.ping_local = ping_local_result
+            result.ping_public = ping_public_result
             result.status = status
             result.screenshot = screenshot
 
@@ -281,18 +367,21 @@ def recheck_selected():
                 ssl_expiry = check_ssl(result.url)
                 screenshot = capture_screenshot('https://' + result.url)
                 
-                if screenshot is None:
-                    screenshot = b''
+                if screenshot == b'-':
+                    screenshot = b'-'
 
-                ping_time = ping(result.url)
-                ping_public = f"{ping_time * 1000:.2f} ms" if ping_time else "No response"
+                # Perform ping operations
+                ping_local_result = ping_local(result.url)
+                ping_public_result = ping_public(result.url)
+
                 status = "ACTIVE" if response else "NON ACTIVE"
                 
                 if response is None:
                     status = "NON ACTIVE"
 
                 result.ssl_expiry = ssl_expiry
-                result.ping_public = ping_public
+                result.ping_local = ping_local_result
+                result.ping_public = ping_public_result
                 result.status = status
                 result.screenshot = screenshot
 

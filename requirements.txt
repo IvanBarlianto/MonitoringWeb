@@ -9,3 +9,6 @@ requests
 sql
 flask_sqlalchemy
 mysql-connector-python
+datetime
+logging
+functools

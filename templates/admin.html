@@ -205,6 +205,7 @@
                             <th>No</th>
                             <th>URL</th>
                             <th>SSL Expiry</th>
+                            <th>Ping Local</th>
                             <th>Ping Public</th>
                             <th>Status</th>
                             <th>Screenshot</th>
@@ -218,6 +219,7 @@
                             <td></td>
                             <td>{{ result.url }}</td>
                             <td>{{ result.ssl_expiry }}</td>
+                            <td>{{ result.ping_local }}</td>
                             <td>{{ result.ping_public }}</td>
                             <td>{{ result.status }}</td>
                             <td>
@@ -230,7 +232,7 @@
                             <td><button class="delete-btn" data-id="{{ result.id }}">Delete</button></td>
                         </tr>
                         {% endfor %}
-                    </tbody>
+                    </tbody>                    
                 </table>
             </div>
         </main>
@@ -295,35 +297,23 @@
                     const response = await fetch('/check', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            url
-                        })
+                        body: JSON.stringify({ url }),
                     });
 
-                    const data = await response.json();
                     if (!response.ok) {
-                        throw new Error(data.error || 'An unknown error occurred');
+                        throw new Error('Network response was not ok');
                     }
 
-                    // Add new row to DataTable
-                    resultTable.row.add([
-                        resultTable.data().length + 1,
-                        url,
-                        data.ssl_expiry,
-                        data.ping_public,
-                        data.status,
-                        `<img src="data:image/png;base64,${data.screenshot}" alt="Screenshot of ${url}" width="200">`,
-                        '<button class="delete-btn" data-id="' + data.id +
-                        '">Delete</button>' // Ensure data.id is available
-                    ]).draw();
+                    const data = await response.json();
+                    console.log(data);
+                    location.reload();
                 } catch (error) {
-                    console.error('Error checking URL:', error.message);
-                    alert('Error: ' + error.message);
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 } finally {
                     toggleLoading(false);
-                    updateLastCheck();
                 }
             });
 
